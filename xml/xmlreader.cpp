@@ -7,11 +7,14 @@ void processNode(xmlTextReaderPtr reader)
 {
 	int i, count, type;
 	const xmlChar *name, *value, *attr;
-	
+
+
+	type = xmlTextReaderNodeType(reader);
+	if(type == XML_READER_TYPE_ELEMENT)
+		printf("* ");
 	// depth
 	printf("depth=%d ", xmlTextReaderDepth(reader));
-	// type
-	type = xmlTextReaderNodeType(reader);
+	// type	
 	printf("type=%d ", type);
 	// <name attr=""></name>
 	name = xmlTextReaderConstName(reader);
@@ -40,9 +43,8 @@ void processNode(xmlTextReaderPtr reader)
 		count = xmlTextReaderAttributeCount(reader);
 		for(i=0; i<count; i++)
 		{
-			xmlTextReaderGetAttribute(reader, name);
 			attr = xmlTextReaderGetAttributeNo(reader, i);
-			printf(" %s='%s' ", name, attr);
+			printf(" attr%d='%s' ", i, attr);
 		}
 		printf("]");
 	}
@@ -54,7 +56,7 @@ void streamFile(const char* file)
 {
 	int ret;
 	xmlTextReaderPtr reader;
-	reader = xmlReaderForFile(file, NULL, 0);
+	reader = xmlReaderForFile(file, NULL, XML_PARSE_DTDATTR | XML_PARSE_RECOVER);
 	if(reader != NULL)
 	{
 		ret = xmlTextReaderRead(reader);
@@ -81,7 +83,9 @@ int main(int argc, char* argv[])
 	LIBXML_TEST_VERSION
 	
 	streamFile(argv[1]);
-	
+	// cleanup function for the XML library
+	xmlCleanupParser();
+		
 	return 0;
 }
 
