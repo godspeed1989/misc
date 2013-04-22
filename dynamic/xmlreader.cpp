@@ -1,11 +1,8 @@
+#include "xmlreader.hpp"
 #include <cstdio>
-#include <vector>
 #include <cassert>
 #include <cstring>
-#include <libxml2/libxml/xmlreader.h>
-using namespace std;
 
-typedef unsigned int u32;
 #define MLEN        128
 #define AREADESC    (const xmlChar*)"AREADESC"
 #define FILEHEAD    (const xmlChar*)"FILEHEAD"
@@ -15,59 +12,9 @@ typedef unsigned int u32;
 #define PARA        (const xmlChar*)"PARA"
 #define PARACHOICE  (const xmlChar*)"PARACHOICE"
 
-struct PARA_entity;
-typedef enum length_t {
-	BIT, BYTE, OTHER_BIT, OTHER_BYTE
-}length_t;
-typedef struct length
-{
-	PARA_entity* e;
-	int l;
-}length;
-
-typedef enum range_t {
-	VALUE, RANGE, ANY
-}range_t;
-typedef struct range
-{
-	range_t type;
-	u32 low, high;
-}range;
-
-typedef enum { T_PARA, T_PARACHOICE } PARA_entity_t;
-typedef struct PARA_entity
-{
-	int depth;
-	xmlChar* name;
-	PARA_entity_t type;
-	struct attr
-	{
-		int type; // type= in attr
-		length_t len_t;
-		length len;
-		PARA_entity* depend; // nil if not have depend 
-		range rng; // only in para choice value = 
-	}attr;
-}PARA_entity;
-
-typedef struct log_t
-{
-	range rng;  // <LOG value=$rng>
-	vector<PARA_entity*> log;
-}log_t;
-typedef struct file_format
-{
-	vector<PARA_entity*> file_head;
-	vector<PARA_entity*> log_head;
-	vector<log_t*> log_types;
-}file_format;
-
 #ifdef LIBXML_READER_ENABLED
 
-vector<PARA_entity*>* processing;
-file_format format_file;
-
-PARA_entity* dup_PARA_entity(PARA_entity* entity)
+static PARA_entity* dup_PARA_entity(PARA_entity* entity)
 {
 	PARA_entity *pentity = (PARA_entity*)malloc(sizeof(PARA_entity));
 	memset(pentity, 0, sizeof(PARA_entity));
@@ -75,7 +22,7 @@ PARA_entity* dup_PARA_entity(PARA_entity* entity)
 	return pentity;
 }
 
-void resolveRng(range& rng, const xmlChar* str)
+static void resolveRng(range& rng, const xmlChar* str)
 {
 	if(xmlStrlen(str)==0)
 		rng.type = ANY;
@@ -84,7 +31,10 @@ void resolveRng(range& rng, const xmlChar* str)
 	//TODO: range value proccessing
 }
 
-void processNode(xmlTextReaderPtr reader)
+/**
+ * process one XML node
+ */
+void xmlreader::processNode(xmlTextReaderPtr reader)
 {
 	int i, count, type;
 	const xmlChar *name, *s;
@@ -99,42 +49,42 @@ void processNode(xmlTextReaderPtr reader)
 	name = xmlTextReaderConstName(reader);
 	if(name == NULL)
 	 	name = BAD_CAST "nil";
-	if(xmlStrncasecmp(name, AREADESC, MLEN) == 0)
+	if(xmlStrncasecmp(name, AREADESC, MLEN) == 0)// <AREADESC>
 	{
 		printf("*****Processing <AREADESC> ...\n");
 		assert(entity.depth == 0);
 		return;
 	}
-	else if(xmlStrncasecmp(name, FILEHEAD, MLEN) == 0)
+	else if(xmlStrncasecmp(name, FILEHEAD, MLEN) == 0)// <FILEHEAD>
 	{
 		printf("*****Processing <FILEHEAD> ...\n");
 		assert(entity.depth == 1);
 		processing = &format_file.file_head;
 		return;
 	}
-	else if(xmlStrncasecmp(name, LOGHEAD, MLEN) == 0)
+	else if(xmlStrncasecmp(name, LOGHEAD, MLEN) == 0)// <LOGHEAD>
 	{
 		printf("*****Processing  <LOGHEAD> ...\n");
 		assert(entity.depth == 1);
 		processing = &format_file.log_head;
 		return;
 	}
-	else if(xmlStrncasecmp(name, LOGTYPE, MLEN) == 0)
+	else if(xmlStrncasecmp(name, LOGTYPE, MLEN) == 0)// <LOGTYPE>
 	{
 		printf("*****Processing <LOGTYPE> ...\n");
 		assert(entity.depth == 1);
 		return;
 	}
-	else if(xmlStrncasecmp(name, LOG, MLEN) == 0)
+	else if(xmlStrncasecmp(name, LOG, MLEN) == 0)// <LOG type="" ...
 	{
 		printf("***Processing <LOG value=");
 		assert(entity.depth == 2);
 		assert(xmlTextReaderAttributeCount(reader) > 0);
-		log_t *one_log_type = (log_t*)malloc(sizeof(log_t));
+		log_t *one_log_type = new log_t;
 		// setup range
 		s = xmlTextReaderGetAttributeNo(reader, 0);
 		resolveRng(one_log_type->rng, s);
-		processing = &one_log_type->log;
+		processing = &one_log_type->logs;
 		format_file.log_types.push_back(one_log_type);
 		printf("'%s'> ...\n", s);
 		return;
@@ -189,6 +139,7 @@ void processNode(xmlTextReaderPtr reader)
 		exit(-1);
 	}
 	
+#ifdef DEBUG
 	// <name attr0="" attr1=""/>
 	if(type != XML_READER_TYPE_END_ELEMENT &&
 		xmlTextReaderAttributeCount(reader) > 0)
@@ -202,9 +153,10 @@ void processNode(xmlTextReaderPtr reader)
 		}
 		printf("]\n");
 	}
+#endif
 }
 
-void streamFile(const char* file)
+void xmlreader::processFile(const char* file)
 {
 	int ret;
 	xmlTextReaderPtr reader;
@@ -212,6 +164,7 @@ void streamFile(const char* file)
 	if(reader != NULL)
 	{
 		processing = NULL;
+		cleanup();
 		ret = xmlTextReaderRead(reader);
 		while (ret == 1)
 		{
@@ -230,7 +183,7 @@ void streamFile(const char* file)
 	}
 }
 
-void show_PARA_entity(PARA_entity *entity)
+static void show_PARA_entity(PARA_entity *entity)
 {
 	printf("depth=%d ", entity->depth);
 	if(entity->type == T_PARA)
@@ -241,17 +194,17 @@ void show_PARA_entity(PARA_entity *entity)
 				entity->attr.depend->name, entity->attr.rng.low, entity->attr.rng.high);
 }
 
-void show_one_log_type(log_t *log)
+static void show_one_log_type(log_t *log)
 {
+	printf("<LOG type=%d~%d >(%d)\n", log->rng.low, log->rng.high, log->logs.size());
 	vector<PARA_entity*>::iterator it;
-	printf("<LOG type=%d~%d >(%d)\n", log->rng.low, log->rng.high, log->log.size());
-	for(it = log->log.begin(); it != log->log.end(); it++)
+	for(it = log->logs.begin(); it != log->logs.end(); it++)
 	{
 		show_PARA_entity(*it);
 	}
 }
 
-void output()
+void xmlreader::printOut()
 {
 	vector<PARA_entity*>::iterator it;
 	vector<log_t*>::iterator lit;
@@ -270,17 +223,32 @@ void output()
 		show_one_log_type(*lit);
 }
 
+void xmlreader::cleanup()
+{
+	format_file.file_head.clear();
+	format_file.log_head.clear();
+	vector<log_t*>::iterator lit = format_file.log_types.begin();
+	while(lit != format_file.log_types.end())
+	{
+		vector<PARA_entity*>::iterator pit = (*lit)->logs.begin();
+		while(pit != (*lit)->logs.end())
+		{
+			free(*pit);
+			pit++;
+		}
+		delete (*lit);
+		lit++;
+	}
+	format_file.log_types.clear();
+}
+
 int main(int argc, char* argv[])
 {
 	if(argc < 2)
 		return -1;
-	LIBXML_TEST_VERSION
-	
-	streamFile(argv[1]);
-	// cleanup function for the XML library
-	xmlCleanupParser();
-	
-	output();
+	xmlreader xmlread;
+	xmlread.processFile(argv[1]);
+	xmlread.printOut();
 	return 0;
 }
 
