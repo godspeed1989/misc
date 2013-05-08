@@ -10,8 +10,8 @@
 const char * FB_DEV = "/dev/fb0";
 
 
-//画大小为width*height的同色矩阵，8alpha+8reds+8greens+8blues
-void drawRect_rgb32(int x0, int y0, int width, int height, int color,
+// 画大小为width*height的同色矩阵，8alpha+8reds+8greens+8blues
+void drawRect_rgb32(int x0, int y0, int width, int height, __u32 color32,
                     struct fb_var_screeninfo* var, struct fb_fix_screeninfo* fix,
                     void* frameBuffer)
 {
@@ -26,22 +26,22 @@ void drawRect_rgb32(int x0, int y0, int width, int height, int color,
 	{
 		for (x = 0; x < width; ++x)
 		{
-		   dest[x] = color;
+		   dest[x] = color32;
 		}
 		dest += stride;
 	}
 }
-//画大小为width*height的同色矩阵，5reds+6greens+5blues
-void drawRect_rgb16(int x0, int y0, int width, int height, int color,
+// 画大小为width*height的同色矩阵，5reds+6greens+5blues
+void drawRect_rgb16(int x0, int y0, int width, int height, __u32 color32,
                     struct fb_var_screeninfo* var, struct fb_fix_screeninfo* fix,
                     void* frameBuffer)
 {
 	const int bytesPerPixel = 2;
 	const int stride = fix->line_length / bytesPerPixel;
-	const int red = (color & 0xff0000) >> (16 + 3);
-	const int green = (color & 0xff00) >> (8 + 2);
-	const int blue = (color & 0xff) >> 3;
-	const short color16 = blue | (green << 5) | (red << (5 + 6));
+	const int red = (color32 & 0xff0000) >> (16 + 3); // 8-5=3
+	const int green = (color32 & 0xff00) >> (8 + 2); // 8-6=2
+	const int blue = (color32 & 0xff) >> 3;
+	const __u16 color16 = blue | (green << 5) | (red << (5 + 6));
 
 	__u16 *dest = (__u16*) (frameBuffer)
 		+ (y0 + var->yoffset) * stride + (x0 + var->xoffset);
@@ -57,16 +57,16 @@ void drawRect_rgb16(int x0, int y0, int width, int height, int color,
 	}
 }
 //画大小为width*height的同色矩阵，5reds+5greens+5blues
-void drawRect_rgb15(int x0, int y0, int width, int height, int color,
+void drawRect_rgb15(int x0, int y0, int width, int height, __u32 color32,
                     struct fb_var_screeninfo* var, struct fb_fix_screeninfo* fix,
                     void* frameBuffer)
 {
 	const int bytesPerPixel = 2;
 	const int stride = fix->line_length / bytesPerPixel;
-	const int red = (color & 0xff0000) >> (16 + 3);
-	const int green = (color & 0xff00) >> (8 + 3);
-	const int blue = (color & 0xff) >> 3;
-	const short color15 = blue | (green << 5) | (red << (5 + 5)) | 0x8000;
+	const int red = (color32 & 0xff0000) >> (16 + 3); // 8-5=3
+	const int green = (color32 & 0xff00) >> (8 + 3);
+	const int blue = (color32 & 0xff) >> 3;
+	const __u16 color15 = blue | (green << 5) | (red << (5 + 5)) | 0x8000;
 
 	__u16 *dest = (__u16*) (frameBuffer)
 		+ (y0 + var->yoffset) * stride + (x0 + var->xoffset);
@@ -91,10 +91,10 @@ void drawRect(int x0, int y0, int width, int height, int color,
 		drawRect_rgb32(x0, y0, width, height, color, var, fix, frameBuffer);
 		break;
 	case 16:
-		drawRect_rgb16 (x0, y0, width, height, color, var, fix, frameBuffer);
+		drawRect_rgb16(x0, y0, width, height, color, var, fix, frameBuffer);
 		break;
 	case 15:
-		drawRect_rgb15 (x0, y0, width, height, color, var, fix, frameBuffer);
+		drawRect_rgb15(x0, y0, width, height, color, var, fix, frameBuffer);
 		break;
 	default:
 		printf("Warning: drawRect() not support for color depth %d\n",
@@ -102,7 +102,9 @@ void drawRect(int x0, int y0, int width, int height, int color,
 		break;
 	}
 }
-
+/*
+ * print out frame buffer information and draw rectangles
+ */
 void print_fb_info()
 {
 	int fh;
@@ -138,15 +140,15 @@ void print_fb_info()
 	printf("memory length: %d\n", fix.smem_len);
 	printf("%d\n", var.xres * var.yres * var.bits_per_pixel / 8);
 
+	// draw rectangles to test frame buffer
 	void* frameBuffer = (void *) mmap (
 		0, fix.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fh, 0);
 	drawRect(var.xres / 8, var.yres / 8, var.xres / 4, var.yres / 4, 0xffff0000,
              &var, &fix, frameBuffer);
 	drawRect(var.xres * 3 / 8, var.yres * 3 / 8, var.xres / 4, var.yres / 4, 0xff00ff00,
              &var, &fix, frameBuffer);
-	drawRect (var.xres * 5 / 8, var.yres * 5 / 8, var.xres / 4, var.yres / 4, 0xff0000ff,
+	drawRect(var.xres * 5 / 8, var.yres * 5 / 8, var.xres / 4, var.yres / 4, 0xff0000ff,
              &var, &fix, frameBuffer);
-
 	sleep(3);
 	// clean screen
 	printf("\033[H\033[J");
