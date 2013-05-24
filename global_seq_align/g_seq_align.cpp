@@ -31,9 +31,9 @@ void load_data(const char *file, vector<GENE_T>& s1, vector<GENE_T>& s2)
 	FILE *fin;
 	fin = fopen(file, "r");
 	assert(file);
-	while( !feof(fin) && (c=fgetc(fin)) != '\n')
+	while(!feof(fin) && (c=fgetc(fin))!='\n')
 		if(is_valid(c)) s1.push_back(c);
-	while( !feof(fin) && (c=fgetc(fin)) != '\n')
+	while(!feof(fin) && (c=fgetc(fin))!='\n')
 		if(is_valid(c)) s2.push_back(c);
 	fclose(fin);
 }
@@ -41,13 +41,13 @@ void load_data(const char *file, vector<GENE_T>& s1, vector<GENE_T>& s2)
 void output_tlb(int t = 0)
 {
 	printf("Table:\n%c", '\\');
-	for(int i = 0; i < seq2.size(); ++i)
-		printf(" %4c", seq2[i]);
+	for(size_t i = 1; i <= seq2.size(); ++i)
+		printf(" %4c", seq2[i-1]);
 	printf("\n");
-	for(int i = 0; i < seq1.size(); ++i)
+	for(size_t i = 1; i <= seq1.size(); ++i)
 	{
-		printf("%c", seq1[i]);
-		for(int j = 0; j < seq2.size(); ++j)
+		printf("%c", seq1[i-1]);
+		for(size_t j = 1; j <= seq2.size(); ++j)
 		{
 			if(!t)
 				printf(" %4ld", tlb[i][j].score);
@@ -60,7 +60,52 @@ void output_tlb(int t = 0)
 
 void output_result(void)
 {
-	
+	size_t i = 1, j = 1;
+	score_t s = 0;
+	vector<GENE_T> __seq1, __seq2;
+	vector<score_t> __score;
+	while(i<=seq1.size() && j<=seq2.size())
+	{
+		switch(tlb[i][j].mark)
+		{
+			case '\\':
+				__seq1.push_back(seq1[i-1]);
+				__seq2.push_back(seq2[j-1]);
+				s = (seq1[i-1] == seq2[j-1]) ? 0 : 1;
+				i++; j++;
+				break;
+			case '-':
+				__seq1.push_back(_N);
+				__seq2.push_back(seq2[j-1]);
+				s = 2;
+				j++;
+				break;
+			case '|':
+				__seq1.push_back(seq1[i-1]);
+				__seq2.push_back(_N);
+				s = 2;
+				i++;
+				break;
+			case '.':
+				s = tlb[1][1].score;
+				i++; j++;
+				break;
+			default:
+				printf("error: unknown mark %c\n", tlb[i][j].mark);
+				assert(0);
+				break;
+		}
+		__score.push_back(s);
+	}
+	for(i = 0; i < __seq1.size(); ++i)
+		cout << __seq1[i] << "  ";
+	printf("\n");
+	for(i = 0; i < __seq2.size(); ++i)
+		cout << __seq2[i] << "  ";
+	printf("\n");
+	for(i = 0; i < __score.size(); ++i)
+		cout << __score[i] << "  ";
+	printf("\n");
 }
 
 void calculate(const char *file)
@@ -73,19 +118,19 @@ void calculate(const char *file)
 	seq1.push_back(_N);
 	seq2.push_back(_N);
 	/* initial table variable */
-	for(int i = 0; i < seq1.size(); ++i)
-		tlb[i][seq2.size()] = table_t(2*MAX_LEN, '?');
-	for(int j = 0; j < seq2.size(); ++j)
-		tlb[seq1.size()][j] = table_t(2*MAX_LEN, '?');
-	tlb[seq1.size()-1][seq2.size()-1] = table_t(0, '.');
+	for(size_t i = 1; i <= seq1.size(); ++i)
+		tlb[i][seq2.size()+1] = table_t(2*MAX_LEN, '?');
+	for(size_t j = 1; j <= seq2.size(); ++j)
+		tlb[seq1.size()+1][j] = table_t(2*MAX_LEN, '?');
+	tlb[seq1.size()][seq2.size()] = table_t(0, '.');
 	/* construct table */
-	for(int i = seq1.size()-1; i >= 0; --i)
+	for(size_t i = seq1.size(); i != 0; --i)
 	{
-		for(int j = seq2.size()-1; j >= 0; --j)
+		for(size_t j = seq2.size(); j != 0; --j)
 		{
-			if(i == seq1.size()-1 && j == seq2.size()-1)
+			if(i == seq1.size() && j == seq2.size())
 				continue;
-			if(seq1[i] == seq2[j])
+			if(seq1[i-1] == seq2[j-1])
 			{
 				tlb[i][j] = table_t(tlb[i+1][j+1].score+0, '\\');
 			}
@@ -114,7 +159,7 @@ void calculate(const char *file)
 		}
 	}
 	/* result */
-	cout << "score is " << tlb[0][0].score << endl;
+	cout << "score is " << tlb[1][1].score << endl;
 }
 
 int main(int c, const char* v[])

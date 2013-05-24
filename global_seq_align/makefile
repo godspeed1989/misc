@@ -1,6 +1,6 @@
 CC = g++
 TARGET = g_seq_align
-CPPFLAGS = -g
+CPPFLAGS = -Wall
 LDFLAGS = -lc -lm
 
 all: $(TARGET)
