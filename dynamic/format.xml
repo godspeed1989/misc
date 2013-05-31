@@ -59,7 +59,7 @@
 			<PARACHOICE value="12">
 				<PARA name="cPara1" length="4" type="0" typeEx="codepara"/>
 			</PARACHOICE>
-			<PARACHOICE value="1078272~1081343">
+			<PARACHOICE value="-1078272~1081343">
 				<PARA name="ucCondNum" length="4" type="4" typeEx="decimal"/>
 			</PARACHOICE>
 		</PARA>

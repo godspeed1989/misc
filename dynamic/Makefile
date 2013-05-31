@@ -2,15 +2,16 @@ CC = g++
 LIBS += `xml2-config --libs`
 CPPFLAGS = -Wall `xml2-config --cflags` -g
 
-XML = xmlreader
+TARGET = dynamic
 
-all: $(XML)
+all: $(TARGET)
 
-$(XML).o: $(XML).cpp $(XML).hpp
+main.o: main.cpp
+xmlreader.o: xmlreader.cpp xmlreader.hpp xmlreader_static.hpp
 
-$(XML): $(XML).o
-	$(CC) $< $(LIBS) -o $@
+$(TARGET): xmlreader.o main.o
+	$(CC) $+ $(LIBS) -o $@
 
 clean:
-	rm -rf *.o $(XML)
+	rm -rf *.o $(TARGET)
 

@@ -19,15 +19,16 @@ typedef struct length
 }length;
 // range type
 typedef enum range_t {
-	VALUE, RANGE, ANY
+	T_VALUE, T_RANGE, T_ANY
 }range_t;
 typedef struct range
 {
 	range_t type;
-	u32 low, high;
+	long low, high;
 }range;
 // PARA type
 typedef enum { T_PARA, T_PARACHOICE } PARA_entity_t;
+// PARA entity
 typedef struct PARA_entity
 {
 	int depth;
