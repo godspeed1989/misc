@@ -1,13 +1,13 @@
-#include "xmlreader.hpp"
+#include "filereader.hpp"
 
 int main(int argc, char* argv[])
 {
-	if(argc < 2)
+	if(argc < 3)
 		return -1;
-	xmlreader xmlread;
-	xmlread.processFile(argv[1]);
-	xmlread.printOut();
-	xmlread.cleanup();
+	
+	filereader freader(argv[1], argv[2]);
+	freader.parse_fmt_file();
+	freader.parse_data_file();
 	return 0;
 }
 

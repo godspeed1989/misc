@@ -145,7 +145,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 #endif
 }
 
-void xmlreader::processFile(const char* file)
+int xmlreader::processFile(const char* file)
 {
 	int ret;
 	xmlTextReaderPtr reader;
@@ -164,11 +164,14 @@ void xmlreader::processFile(const char* file)
 		if(ret != 0)
 		{
 			fprintf(stderr, "Error in parse %s\n", file);
+			return ret;
 		}
+		return 0;
 	}
 	else
 	{
 		fprintf(stderr, "Open %s error\n", file);
+		return 1;
 	}
 }
 
@@ -189,6 +192,7 @@ void xmlreader::printOut()
 	lit = format_file.log_types.begin();
 	for(;lit != format_file.log_types.end();lit++)
 		show_one_log_type(*lit);
+	printf("========= Finish output read in =========\n");
 }
 
 void xmlreader::cleanup()
