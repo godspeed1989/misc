@@ -108,12 +108,8 @@ void output_result(void)
 	printf("\n");
 }
 
-void calculate(const char *file)
+void calculate_dynamic()
 {
-	/* load data from file */
-	load_data(file, seq2, seq1);
-	cout<< "seq1: " << seq1.size() << endl
-		<< "seq2: " << seq2.size() << endl;
 	/* padding the NULL at the end of seq */
 	seq1.push_back(_N);
 	seq2.push_back(_N);
@@ -160,16 +156,87 @@ void calculate(const char *file)
 	}
 	/* result */
 	cout << "score is " << tlb[1][1].score << endl;
+	/* remove the padding at the end of seq */
+	seq1.pop_back();
+	seq2.pop_back();
+}
+
+score_t calculate_recursive(size_t idx1, size_t idx2)
+{
+	score_t DR;
+	if(idx1 == seq1.size() && idx2 == seq2.size())
+		return 0;
+	if(idx1 == seq1.size())
+		return 2*(seq2.size()-idx2);
+	if(idx2 == seq2.size())
+		return 2*(seq1.size()-idx1);
+	DR = calculate_recursive(idx1 + 1, idx2 + 1);
+	if(seq1[idx1] == seq2[idx2])
+	{
+		return DR;
+	}
+	else
+	{
+		score_t D, R;
+		DR += 1;
+		D = calculate_recursive(idx1, idx2 + 1) + 2;
+		R = calculate_recursive(idx1 + 1, idx2) + 2;
+		if(D > R)
+			D = R;
+		if(D < DR)
+			return D;
+		else
+			return DR;
+	}
 }
 
 int main(int c, const char* v[])
 {
+	clock_t start;
 	if(c < 2) return 1;
-	calculate(v[1]);
-	output_result();
-	output_tlb();
-	output_tlb(1);
+	/* load data from file */
+	seq1.clear();
+	seq2.clear();
+	load_data(v[1], seq1, seq2);
+	cout<< "seq1: " << seq1.size() << endl
+		<< "seq2: " << seq2.size() << endl;
+	printf("using dynamic programming\n");
+	start = clock();
+	calculate_dynamic();
+	printf("%lf sec\n", double(clock()-start)/CLOCKS_PER_SEC);
+	printf("using recursive method\n");
+	start = clock();
+	score_t score = calculate_recursive(0, 0);
+	printf("score is %ld\n", score);
+	printf("%lf sec\n", double(clock()-start)/CLOCKS_PER_SEC);
+	//output_result();
+	//output_tlb();
+	//output_tlb(1);
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
