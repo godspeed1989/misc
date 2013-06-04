@@ -78,6 +78,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 	{
 		entity.type = T_PARA;
 		assert(xmlTextReaderAttributeCount(reader) > 0);
+		// parse attributes
 		int count = xmlTextReaderAttributeCount(reader);
 		for(int i = 0; i < count; ++i)
 		{
@@ -86,7 +87,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 				entity.name = xmlStrdup(s);
 			else if(i == 1)// type=""
 				entity.attr.type = atoi((const char*)s);
-			else if(i == 2)//length ?? depend
+			else if(i == 2)//length or depend ??
 				entity.attr.len.l = atoi((const char*)s);
 			else if(i == 3)//??
 				;

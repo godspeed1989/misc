@@ -7,18 +7,9 @@ using namespace std;
 
 typedef unsigned int u32;
 
-struct PARA_entity;
-// length type
-typedef enum length_t {
-	BIT, BYTE, OTHER_BIT, OTHER_BYTE
-}length_t;
-typedef struct length
-{
-	PARA_entity* e;
-	u32 l;
-}length;
 // range type
-typedef enum range_t {
+typedef enum range_t
+{
 	T_VALUE, T_RANGE, T_ANY
 }range_t;
 typedef struct range
@@ -26,6 +17,15 @@ typedef struct range
 	range_t type;
 	long low, high;
 }range;
+
+struct PARA_entity;
+// length, cound be a instant value or value of others
+typedef struct length
+{
+	PARA_entity* e;
+	u32 l;
+}length;
+
 // PARA type
 typedef enum { T_PARA, T_PARACHOICE } PARA_entity_t;
 // PARA entity
@@ -37,18 +37,19 @@ typedef struct PARA_entity
 	struct attr
 	{
 		int type; // type= in attr
-		length_t len_t;
 		length len;
-		PARA_entity* depend; // nil if not have depend 
-		range rng; // only in para choice value = 
+		PARA_entity* depend; // nil if don't have dependence
+		range rng; // only in para choice "value="
 	}attr;
 }PARA_entity;
 
+// structure of each log
 typedef struct log_t
 {
 	range rng;  // <LOG value=$rng>
 	vector<PARA_entity*> logs;
 }log_t;
+// structure of the data file
 typedef struct file_format
 {
 	vector<PARA_entity*> file_head;

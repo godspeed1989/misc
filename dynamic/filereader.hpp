@@ -12,21 +12,21 @@ using namespace std;
 
 typedef struct data
 {
-	u32 pos_B;  // file pointer in Bytes
-	u8 pos_b;   // file pointer in bits
 	PARA_entity* ref;
+	u32 lenb;
+	void *p;
 }data;
 
-typedef struct log
+typedef struct log_d
 {
 	vector<data> head;
 	vector<data> content;
-}log;
-
+}log_d;
+// content of a data file
 typedef struct file_data
 {
-	vector<data> head;
-	vector<log> logs;
+	vector<data> head; // file's header
+	vector<log_d> logs; // content log's head and it's content
 }file_data;
 
 typedef class filereader
@@ -35,14 +35,11 @@ private:
 	char fmt_file[MAX_PATH];
 	char dat_file[MAX_PATH];
 	xmlreader xfreader;
-	bitfile bit_reader;
+	bitfile dfreader;
 	file_data data_file;
 public:
 	filereader(const char *fmt_file, const char *dat_file);
-	int parse_fmt_file()
-	{
-		return xfreader.processFile(fmt_file);
-	}
+	int parse_fmt_file();
 	int parse_data_file();
 	~filereader()
 	{
