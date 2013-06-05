@@ -1,58 +1,28 @@
 #include "filereader.hpp"
+#include "filereader_static.hpp"
 #include <cstring>
 
-#define T_BIT          3
-#define T_BYTE         4
-#define T_BIT_OTHER    7
-#define T_BYTE_OTHER   16
+#define LOGTYPE    (const xmlChar*)"Logtype"
 
 filereader::filereader(const char *fmtfile, const char *datfile)
 {
-	strncpy(fmt_file, fmtfile, MAX_PATH);
-	strncpy(dat_file, datfile, MAX_PATH);
+	strncpy(fmt_file_name, fmtfile, MAX_PATH);
+	strncpy(dat_file_name, datfile, MAX_PATH);
 }
 
 int filereader::parse_fmt_file()
 {
-	return xfreader.processFile(fmt_file);
-}
-
-static int readin(bitfile &reader, PARA_entity* e, vector<data> &container)
-{
-	data d;
-	switch(e->attr.type)
-	{
-		case T_BIT:
-			d.lenb = e->attr.len.l;      break;
-		case T_BYTE:
-			d.lenb = e->attr.len.l << 3; break;
-		case T_BIT_OTHER:
-			//TODO len is based other in BIT
-			break;
-		case T_BYTE_OTHER:
-			//TODO len is based other in BYTE
-			break;
-		default:
-			d.lenb = e->attr.len.l << 3;
-			break;
-	}
-	d.ref = e;
-	d.p = malloc((d.lenb >> 3) + 1);
-	reader.readb(d.p, d.lenb);
-	if(reader.eof())
-		return -1;
-	container.push_back(d);
-	return 0;
+	return xfreader.processFile(fmt_file_name);
 }
 
 int filereader::parse_data_file()
 {
 	size_t i;
-	log_d log;
+	log_data logdata;
 	xfreader.printOut();
-	if(dfreader.open(dat_file, READ))
+	if(dfreader.open(dat_file_name, READ))
 	{
-		printf("Open %s error\n", dat_file);
+		printf("Open %s error\n", dat_file_name);
 		return -1;
 	}
 	dfreader.info();
@@ -66,35 +36,48 @@ int filereader::parse_data_file()
 			return -1;
 		}
 	}
+	printf("read in [%s] file header\n", dat_file_name);
 	// read in data file's logs
 	vector<PARA_entity*> &log_head = xfreader.format_file.file_head;
 	while(!dfreader.eof())
 	{
-		log.head.clear();
-		log.content.clear();
+		logdata.head.clear();
+		logdata.content.clear();
 		// read in log's head
 		for(i = 0; i<log_head.size(); ++i)
 		{
-			if(readin(dfreader, log_head[i], log.head))
+			if(readin(dfreader, log_head[i], logdata.head))
 			{
 				printf("Read log head error\n");
 				return -1;
 			}
 		}
-		// TODO get log.head.type to determine log_types
-		vector<PARA_entity*> &log_types = xfreader.format_file.log_types[2222]->logs;
-		// read in log's content by base on the log type
-		for(i = 0; i<log_types.size(); ++i)
+		// TODO get log head's type attr to determine log's type
+		long ltype = get_value_by_name(logdata.head, LOGTYPE);
+		// TODO get by value
+		for(i = 0; i < xfreader.format_file.log_fmt.size(); ++i)
 		{
-			if(readin(dfreader, log_types[i], log.content))
+			if(range_equal(xfreader.format_file.log_fmt[i]->rng, ltype))
+				break;
+		}
+		if(i == xfreader.format_file.log_fmt.size())
+		{
+			printf("Log head type error %lx\n", ltype);
+			return -1;
+		}	
+		vector<PARA_entity*> &log_content = xfreader.format_file.log_fmt[ltype]->entitys;
+		// read in log's content
+		for(i = 0; i<log_content.size(); ++i)
+		{
+			if(readin(dfreader, log_content[i], logdata.content))
 			{
 				printf("Read log content error\n");
 				return -1;
 			}
 		}
-		data_file.logs.push_back(log);
+		data_file.logs.push_back(logdata);
 	}
-	
+	printf("read in [%s] file %d logs\n", dat_file_name, data_file.logs.size());
 	return 0;
 }
 

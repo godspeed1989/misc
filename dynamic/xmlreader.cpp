@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstring>
 
-#define MLEN        128
 #define AREADESC    (const xmlChar*)"AREADESC"
 #define FILEHEAD    (const xmlChar*)"FILEHEAD"
 #define LOGHEAD     (const xmlChar*)"LOGHEAD"
@@ -65,13 +64,13 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		printf("****Processing <LOG type=");
 		assert(entity.depth == 2);
 		assert(xmlTextReaderAttributeCount(reader) > 0);
-		log_t *one_log_type = (log_t *)malloc(sizeof(log_t));
+		log_format *one_log_fmt = (log_format *)malloc(sizeof(log_format));
 		// setup range
 		s = xmlTextReaderGetAttributeNo(reader, 0);
-		resolveRng(one_log_type->rng, s);
-		format_file.log_types.push_back(one_log_type);
+		resolveRng(one_log_fmt->rng, s);
+		format_file.log_fmt.push_back(one_log_fmt);
 		printf("'%s'> ...\n", s);
-		processing = &one_log_type->logs;
+		processing = &one_log_fmt->entitys;
 		return;
 	}
 	else if(xmlStrncasecmp(name, PARA, MLEN) == 0)// <PARA ...
@@ -83,18 +82,24 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		for(int i = 0; i < count; ++i)
 		{
 			s = xmlTextReaderGetAttributeNo(reader, i);
-			if(i == 0)// name=""
+			if(i == 0)             // name=""
 				entity.name = xmlStrdup(s);
-			else if(i == 1)// type=""
+			else if(i == 1)        // type=""
 				entity.attr.type = atoi((const char*)s);
-			else if(i == 2)//length or depend ??
+			else if(i == 2)        // length or depend ??
+			{
 				entity.attr.len.l = atoi((const char*)s);
+				entity.attr.depend = NULL; //TODO
+			}
 			else if(i == 3)//??
+			{
 				;
+			}
 			else
+			{
 				;
+			}
 		}
-		
 		processing->push_back(dup_PARA_entity(&entity));
 	}
 	else if(xmlStrncasecmp(name, PARACHOICE, MLEN) == 0)//<PARACHOCE ...
@@ -179,41 +184,37 @@ int xmlreader::processFile(const char* file)
 void xmlreader::printOut()
 {
 	vector<PARA_entity*>::iterator it;
-	vector<log_t*>::iterator lit;
+	vector<log_format*>::iterator lit;
 	printf("======== Output read in to check ========\n");
 	printf("-----<File head info(%d)>-----\n", format_file.file_head.size());
-	it = format_file.file_head.begin();
-	for(;it != format_file.file_head.end();it++)
+	for(it = format_file.file_head.begin(); it != format_file.file_head.end(); ++it)
 		show_PARA_entity(*it);
 	printf("-----<Log head info(%d)>-----\n", format_file.log_head.size());
-	it = format_file.log_head.begin();
-	for(;it != format_file.log_head.end();it++)
+	for(it = format_file.log_head.begin(); it != format_file.log_head.end(); ++it)
 		show_PARA_entity(*it);
-	printf("-----<Log type info(%d)>-----\n", format_file.log_types.size());
-	lit = format_file.log_types.begin();
-	for(;lit != format_file.log_types.end();lit++)
-		show_one_log_type(*lit);
+	printf("-----<Log type info(%d)>-----\n", format_file.log_fmt.size());
+	for(lit = format_file.log_fmt.begin(); lit != format_file.log_fmt.end(); ++lit)
+		show_one_log_fmt(*lit);
 	printf("========= Finish output read in =========\n");
 }
 
 void xmlreader::cleanup()
 {
 	vector<PARA_entity*>::iterator it;
+	vector<log_format*>::iterator lit;
 	for(it = format_file.file_head.begin(); it != format_file.file_head.end(); ++it)
 		free_PARA_entity(*it);
 	for(it = format_file.log_head.begin(); it != format_file.log_head.end(); ++it)
 		free_PARA_entity(*it);
-	vector<log_t*>::iterator lit = format_file.log_types.begin();
-	while(lit != format_file.log_types.end())
+	for(lit = format_file.log_fmt.begin(); lit != format_file.log_fmt.end(); ++lit)
 	{
-		for(it = (*lit)->logs.begin(); it != (*lit)->logs.end(); ++it)
+		for(it = (*lit)->entitys.begin(); it != (*lit)->entitys.end(); ++it)
 			free_PARA_entity(*it);
 		free(*lit);
-		++lit;
 	}
 	format_file.file_head.clear();
 	format_file.log_head.clear();
-	format_file.log_types.clear();
+	format_file.log_fmt.clear();
 }
 
 #endif

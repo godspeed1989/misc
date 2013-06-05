@@ -17,23 +17,23 @@ typedef struct data
 	void *p;
 }data;
 
-typedef struct log_d
+typedef struct log_data
 {
 	vector<data> head;
 	vector<data> content;
-}log_d;
+}log_data;
 // content of a data file
 typedef struct file_data
 {
 	vector<data> head; // file's header
-	vector<log_d> logs; // content log's head and it's content
+	vector<log_data> logs; // content log's head and it's content
 }file_data;
 
 typedef class filereader
 {
 private:
-	char fmt_file[MAX_PATH];
-	char dat_file[MAX_PATH];
+	char fmt_file_name[MAX_PATH];
+	char dat_file_name[MAX_PATH];
 	xmlreader xfreader;
 	bitfile dfreader;
 	file_data data_file;

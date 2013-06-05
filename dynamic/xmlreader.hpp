@@ -5,6 +5,7 @@
 #include <libxml2/libxml/xmlreader.h>
 using namespace std;
 
+#define MLEN         128
 typedef unsigned int u32;
 
 // range type
@@ -39,22 +40,22 @@ typedef struct PARA_entity
 		int type; // type= in attr
 		length len;
 		PARA_entity* depend; // nil if don't have dependence
-		range rng; // only in para choice "value="
+		range rng; // only in para choice "value=1~3"
 	}attr;
 }PARA_entity;
 
 // structure of each log
-typedef struct log_t
+typedef struct log_format
 {
 	range rng;  // <LOG value=$rng>
-	vector<PARA_entity*> logs;
-}log_t;
+	vector<PARA_entity*> entitys;
+}log_format;
 // structure of the data file
 typedef struct file_format
 {
 	vector<PARA_entity*> file_head;
 	vector<PARA_entity*> log_head;
-	vector<log_t*> log_types;
+	vector<log_format*> log_fmt;
 }file_format;
 
 typedef class xmlreader

@@ -1,9 +1,14 @@
+#ifndef __XML_READER_STATIC_H__
+#define __XML_READER_STATIC_H__
+
 // resolve a ranged value
 static void resolveRng(range& rng, const xmlChar* str)
 {
 	const char * p = (const char *)str;
 	if(xmlStrlen(str) == 0)
-		rng.type = T_ANY;
+	{
+		rng.type = T_ANY; // any value
+	}
 	else
 	{
 		int i;
@@ -13,11 +18,11 @@ static void resolveRng(range& rng, const xmlChar* str)
 		if(i == xmlStrlen(str))
 		{
 			rng.type = T_VALUE;
-			rng.low = rng.high = atol(p);
+			rng.low = rng.high = atol(p); // fixed value
 		}
 		else
 		{
-			rng.type = T_RANGE;
+			rng.type = T_RANGE; // a value range
 			strncpy(buf, p, i);
 			buf[i] = '\0';
 			rng.low = atol(buf);
@@ -69,16 +74,17 @@ static void show_PARA_entity(PARA_entity *entity)
 	}
 }
 
-static void show_one_log_type(log_t *log)
+static void show_one_log_fmt(log_format *log)
 {
 	printf("<LOG type=");
 	show_range(log->rng);
-	printf(">(%d)\n", log->logs.size());
+	printf(">(%d)\n", log->entitys.size());
 	vector<PARA_entity*>::iterator it;
-	for(it = log->logs.begin(); it != log->logs.end(); it++)
+	for(it = log->entitys.begin(); it != log->entitys.end(); it++)
 	{
 		show_PARA_entity(*it);
 	}
 }
 
+#endif
 
