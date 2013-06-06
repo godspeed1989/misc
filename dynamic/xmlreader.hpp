@@ -37,18 +37,18 @@ typedef struct PARA_entity
 	PARA_entity_t type;
 	struct attr
 	{
-		int type; // type= in attr
+		int type;            // type= in attr
 		length len;
 		PARA_entity* depend; // nil if don't have dependence
-		range rng; // only in para choice "value=1~3"
+		range rng;           // only in para choice "value=1~3"
 	}attr;
 }PARA_entity;
 
 // structure of each log
 typedef struct log_format
 {
-	range rng;  // <LOG value=$rng>
-	vector<PARA_entity*> entitys;
+	range rng;               // <LOG value=$rng>
+	vector<PARA_entity*> entities;
 }log_format;
 // structure of the data file
 typedef struct file_format
@@ -60,7 +60,7 @@ typedef struct file_format
 
 typedef class xmlreader
 {
-public:	
+public:
 	file_format format_file;
 	int processFile(const char* file);
 	void printOut();

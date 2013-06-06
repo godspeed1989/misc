@@ -70,7 +70,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		resolveRng(one_log_fmt->rng, s);
 		format_file.log_fmt.push_back(one_log_fmt);
 		printf("'%s'> ...\n", s);
-		processing = &one_log_fmt->entitys;
+		processing = &one_log_fmt->entities;
 		return;
 	}
 	else if(xmlStrncasecmp(name, PARA, MLEN) == 0)// <PARA ...
@@ -151,6 +151,9 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 #endif
 }
 
+/*
+ * parse and read in XML format file
+ */
 int xmlreader::processFile(const char* file)
 {
 	int ret;
@@ -208,7 +211,7 @@ void xmlreader::cleanup()
 		free_PARA_entity(*it);
 	for(lit = format_file.log_fmt.begin(); lit != format_file.log_fmt.end(); ++lit)
 	{
-		for(it = (*lit)->entitys.begin(); it != (*lit)->entitys.end(); ++it)
+		for(it = (*lit)->entities.begin(); it != (*lit)->entities.end(); ++it)
 			free_PARA_entity(*it);
 		free(*lit);
 	}

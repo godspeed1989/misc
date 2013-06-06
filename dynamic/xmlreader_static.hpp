@@ -50,6 +50,8 @@ static void free_PARA_entity(PARA_entity* entity)
 	free(entity);
 }
 
+// output functions
+
 static void show_range(range& rng)
 {
 	if(rng.type == T_ANY)
@@ -78,11 +80,10 @@ static void show_one_log_fmt(log_format *log)
 {
 	printf("<LOG type=");
 	show_range(log->rng);
-	printf(">(%d)\n", log->entitys.size());
-	vector<PARA_entity*>::iterator it;
-	for(it = log->entitys.begin(); it != log->entitys.end(); it++)
+	printf(">(%d)\n", log->entities.size());
+	for(size_t i = 0; i < log->entities.size(); ++i)
 	{
-		show_PARA_entity(*it);
+		show_PARA_entity(log->entities[i]);
 	}
 }
 
