@@ -35,7 +35,7 @@ static void resolveRng(range& rng, const xmlChar* str)
 }
 
 // duplicate a PARA entity
-static PARA_entity* dup_PARA_entity(PARA_entity* entity)
+static PARA_entity* dup_PARA_entity(const PARA_entity* entity)
 {
 	PARA_entity *pentity = (PARA_entity*)malloc(sizeof(PARA_entity));
 	memset(pentity, 0, sizeof(PARA_entity));
@@ -43,16 +43,33 @@ static PARA_entity* dup_PARA_entity(PARA_entity* entity)
 	return pentity;
 }
 
+// get a entity reference by its name
+static PARA_entity* get_ref_by_name(vector<PARA_entity*>* es, const xmlChar* name)
+{
+	if(name[0] == '$') // skip $ at the begin of name
+		++name;
+	vector<PARA_entity*>::reverse_iterator rit;
+	for(rit = es->rbegin(); rit != es->rend(); ++rit)
+	{
+		if(xmlStrncasecmp((*rit)->name, name, MLEN))
+			break;
+	}
+	if(rit == es->rend())
+	{
+		printf("error: can't find entity ref by name %s\n", name);
+		throw;
+	}
+	return *rit;
+}
+
 // free a PARA entity
 static void free_PARA_entity(PARA_entity* entity)
 {
-	//if(entity->name) xmlFree(entity->name);
 	free(entity);
 }
 
 // output functions
-
-static void show_range(range& rng)
+static void show_range(const range& rng)
 {
 	if(rng.type == T_ANY)
 		printf("ANY");
@@ -62,12 +79,23 @@ static void show_range(range& rng)
 		printf("%ld~%ld", rng.low, rng.high);
 }
 
-static void show_PARA_entity(PARA_entity *entity)
+static void show_PARA_entity(const PARA_entity *entity)
 {
 	for(int i = 2; i < entity->depth; ++i)
 		printf("    ");
 	if(entity->type == T_PARA)
-		printf("name=%s type=%d length=%d\n", entity->name, entity->attr.type, entity->attr.len.l);
+	{
+		printf("name=%s type=%d length=", entity->name, entity->attr.type);
+		if(entity->attr.len.lb != -1)
+			printf("%db\n", entity->attr.len.lb);
+		else if(entity->attr.len.le)
+			printf("'$%s'\n", entity->attr.len.le->name);
+		else
+		{
+			printf("??unknown??\n");
+			throw;
+		}
+	}
 	else if(entity->type == T_PARACHOICE)
 	{
 		printf("CHOICE on %s value=", entity->attr.depend->name);
@@ -76,7 +104,7 @@ static void show_PARA_entity(PARA_entity *entity)
 	}
 }
 
-static void show_one_log_fmt(log_format *log)
+static void show_one_log_fmt(const log_format *log)
 {
 	printf("<LOG type=");
 	show_range(log->rng);

@@ -6,7 +6,6 @@
 using namespace std;
 
 #define MLEN         128
-typedef unsigned int u32;
 
 // range type
 typedef enum range_t
@@ -23,8 +22,9 @@ struct PARA_entity;
 // length, cound be a instant value or value of others
 typedef struct length
 {
-	PARA_entity* e;
-	u32 l;
+	int lb;
+	PARA_entity* le;
+	
 }length;
 
 // PARA type
@@ -79,6 +79,12 @@ private:
 	vector<PARA_entity*>* processing;
 	void processNode(xmlTextReaderPtr reader);
 }xmlreader;
+
+// the "length=" attribute's type
+#define T_BIT_CASE          case 3
+#define T_BYTE_CASE         case 0: case 4: case 16
+#define T_BIT_REF_CASE      case 7
+#define T_BYTE_REF_CASE     case 11
 
 #endif
 

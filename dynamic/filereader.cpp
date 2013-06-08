@@ -39,7 +39,7 @@ int filereader::parse_data_file()
 	{
 		log_data log_data;
 		// read in log's head
-		vector<PARA_entity*> &log_head_fmt = xfreader.format_file.file_head;
+		vector<PARA_entity*> &log_head_fmt = xfreader.format_file.log_head;
 		ret = readin_entities(dfreader, log_head_fmt, log_data.head);
 		if(ret < 0)
 		{
@@ -75,5 +75,15 @@ int filereader::parse_data_file()
 	}
 	printf("read in [%s] with %d logs\n", dat_file_name, data_file.logs.size());
 	return 0;
+}
+
+// make a summay about parse result
+void filereader::summary()
+{
+	printf("~~~summary~~~\n");
+	printf("%s %s\n", fmt_file_name, dat_file_name);
+	printf("head %d\n", data_file.head.size());
+	printf("logs %d\n", data_file.logs.size());
+	printf("~~~~~~~~~~~~~\n");
 }
 

@@ -41,6 +41,7 @@ public:
 	filereader(const char *fmt_file, const char *dat_file);
 	int parse_fmt_file();
 	int parse_data_file();
+	void summary();
 	~filereader()
 	{
 		xfreader.cleanup();

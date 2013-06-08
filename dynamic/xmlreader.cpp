@@ -65,7 +65,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		assert(entity.depth == 2);
 		assert(xmlTextReaderAttributeCount(reader) > 0);
 		log_format *one_log_fmt = (log_format *)malloc(sizeof(log_format));
-		// setup range
+		// get "type=" attr to setup range
 		s = xmlTextReaderGetAttributeNo(reader, 0);
 		resolveRng(one_log_fmt->rng, s);
 		format_file.log_fmt.push_back(one_log_fmt);
@@ -82,22 +82,40 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		for(int i = 0; i < count; ++i)
 		{
 			s = xmlTextReaderGetAttributeNo(reader, i);
-			if(i == 0)             // name=""
-				entity.name = xmlStrdup(s);
-			else if(i == 1)        // type=""
-				entity.attr.type = atoi((const char*)s);
-			else if(i == 2)        // length or depend ??
+			if(i == 0)
 			{
-				entity.attr.len.l = atoi((const char*)s);
-				entity.attr.depend = NULL; //TODO
+				entity.name = xmlStrdup(s); // name=""
+			}
+			else if(i == 1)
+			{
+				entity.attr.type = atoi((const char*)s); // type=""
+			}
+			else if(i == 2)        // length or depend ??
+			{	//TODO
+				switch(entity.attr.type)
+				{
+					T_BYTE_CASE:
+						entity.attr.len.lb = atoi((const char*)s) << 3;
+					break;
+					T_BIT_CASE:
+						entity.attr.len.lb = atoi((const char*)s);
+					break;
+					T_BYTE_REF_CASE: T_BIT_REF_CASE:
+						entity.attr.len.lb = -1;
+						entity.attr.len.le = get_ref_by_name(processing, s);
+					break;
+					default:
+						printf("unknow attr type %d of %s\n", entity.attr.type, entity.name);
+						throw;
+				}
 			}
 			else if(i == 3)//??
 			{
-				;
+				;//TODO
 			}
 			else
 			{
-				;
+				;//TODO
 			}
 		}
 		processing->push_back(dup_PARA_entity(&entity));
@@ -118,6 +136,11 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 					entity.attr.depend = *rit;
 					break;
 				}
+			}
+			if(rit == processing->rend())
+			{
+				printf("can't find PARACHOICE %s dependency\n", entity.name);
+				throw;
 			}
 			processing->push_back(dup_PARA_entity(&entity));
 		}

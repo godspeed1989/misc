@@ -1,11 +1,6 @@
 #ifndef __FILEREADER_STATIC_HPP__
 #define __FILEHEADER_STATIC_HPP__
 
-#define T_BIT          3
-#define T_BYTE         4
-#define T_BIT_OTHER    7
-#define T_BYTE_OTHER   16
-
 // check wether a value fix into the range
 static bool range_equal(const range &rng, const long value)
 {
@@ -16,44 +11,6 @@ static bool range_equal(const range &rng, const long value)
 	if(rng.type == T_RANGE)
 		return (value >= rng.low && value <= rng.high);
 	return false;
-}
-
-// read in on entity to the container
-static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &container)
-{
-	data d;
-	d.ref = e;
-	// calculate the length by type
-	switch(e->attr.type)
-	{
-		case T_BIT:
-			d.lenb = e->attr.len.l;
-			break;
-		case T_BYTE:
-			d.lenb = e->attr.len.l << 3;
-			break;
-		case T_BIT_OTHER:
-			//TODO len is based other in BIT
-			break;
-		case T_BYTE_OTHER:
-			//TODO len is based other in BYTE
-			break;
-		default:
-			d.lenb = e->attr.len.l << 3;
-			break;
-	}
-	if(d.lenb == 0)
-	{
-		d.p = NULL;
-		return 0;
-	}
-	d.p = malloc((d.lenb >> 3) + 1);
-	// read the data from file
-	reader.readb(d.p, d.lenb);
-	if(reader.eof())
-		return -1;
-	container.push_back(d);
-	return 0;
 }
 
 static long get_value(const data& d)
@@ -74,10 +31,68 @@ static long get_value_by_ref(const vector<data> &data_set, const PARA_entity* re
 	}
 	if(i == data_set.size())
 	{
-		printf("error: can't find data refer [%s]\n", ref->name);
+		printf("error: can't find value refer to [%s]\n", ref->name);
 		throw;
 	}
 	return get_value(data_set[i]);
+}
+
+// get a value by its name from a data set
+static long get_value_by_name(const vector<data> &data_set, const xmlChar* name)
+{
+	size_t i;
+	for(i = 0; i < data_set.size(); ++i)
+	{
+		if(xmlStrncasecmp(data_set[i].ref->name, name, MLEN) == 0)
+			break;
+	}
+	if(i == data_set.size())
+	{
+		printf("error: can't find value of [%s]\n", name);
+		throw;
+	}
+	return get_value(data_set[i]);
+}
+
+// read in on entity to the container
+static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &container)
+{
+	data d;
+	d.ref = e;
+	// calculate the length by type
+	switch(e->attr.type)
+	{
+		T_BIT_CASE: T_BYTE_CASE:
+			d.lenb = e->attr.len.lb;
+			break;
+		T_BIT_REF_CASE:
+			//TODO len is based other in BIT
+			d.lenb = get_value_by_ref(container, e->attr.len.le);
+			break;
+		T_BYTE_REF_CASE:
+			//TODO len is based other in BYTE
+			d.lenb = get_value_by_ref(container, e->attr.len.le) << 3;
+			break;
+		default:
+			printf("unkonw attr type %d of %s\n", e->attr.type, e->name);
+			return -1;
+	}
+	if(d.lenb == 0)
+	{
+		printf("warning: the length of %s is zero\n", e->name);
+		d.p = NULL;
+		return 0;
+	}
+	if(reader.eof())
+	{
+		printf("read in para entity [%s] reached EOF\n", e->name);
+		return -1;
+	}
+	// read the data from file
+	d.p = malloc((d.lenb >> 3) + 1);
+	reader.readb(d.p, d.lenb);
+	container.push_back(d);
+	return 0;
 }
 
 // read in set of entites to a container
@@ -107,7 +122,7 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 				// skip the entities with the higher depth
 				size_t j = i;
 				++i;
-				while(i < es.size() && es[i].depth > es[j].depth)
+				while(i < es.size() && es[i]->depth > es[j]->depth)
 					++i;
 			}
 		}
@@ -115,23 +130,6 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 			throw;
 	}
 	return container.size();
-}
-
-// get a value by its name from a data set
-static long get_value_by_name(const vector<data> &data_set, const xmlChar* name)
-{
-	size_t i;
-	for(i = 0; i < data_set.size(); ++i)
-	{
-		if(xmlStrncasecmp(data_set[i].ref->name, name, MLEN) == 0)
-			break;
-	}
-	if(i == data_set.size())
-	{
-		printf("error: can't find value of [%s]\n", name);
-		throw;
-	}
-	return get_value(data_set[i]);
 }
 
 #endif
