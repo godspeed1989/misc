@@ -13,15 +13,16 @@ static bool range_equal(const range &rng, const long value)
 	return false;
 }
 
-static long get_value(const data& d)
+static void dump_data(const data& d)
 {
-	if(d.lenb > sizeof(long)*8)
-		printf("W: data length of %s exceed return type.\n", d.ref->name);
-	return (long)((long*)(d.p));
+	printf("\tdebug: %s %p = ", d.ref->name, d.p);
+	for(int i = 0; i < (d.lenb>>3) && i < 10; ++i)
+		printf("%x ", *((u8*)d.p+i));
+	printf("\n");
 }
 
 // get a value by its reference pointer
-static long get_value_by_ref(const vector<data> &data_set, const PARA_entity* ref)
+static void* get_value_by_ref(const vector<data> &data_set, const PARA_entity* ref)
 {
 	size_t i;
 	for(i = 0; i < data_set.size(); ++i)
@@ -34,11 +35,10 @@ static long get_value_by_ref(const vector<data> &data_set, const PARA_entity* re
 		printf("error: can't find value refer to [%s]\n", ref->name);
 		throw;
 	}
-	return get_value(data_set[i]);
+	return data_set[i].p;
 }
 
-// get a value by its name from a data set
-static long get_value_by_name(const vector<data> &data_set, const xmlChar* name)
+static const data& get_data_by_name(const vector<data> &data_set, const xmlChar* name)
 {
 	size_t i;
 	for(i = 0; i < data_set.size(); ++i)
@@ -48,10 +48,25 @@ static long get_value_by_name(const vector<data> &data_set, const xmlChar* name)
 	}
 	if(i == data_set.size())
 	{
-		printf("error: can't find value of [%s]\n", name);
+		printf("error: can't find data of [%s]\n", name);
 		throw;
 	}
-	return get_value(data_set[i]);
+#if 0
+	dump_data(data_set[i]);
+#endif
+	return data_set[i];
+}
+
+// get a value by its name from a data set
+static void* get_value_by_name(const vector<data> &data_set, const xmlChar* name)
+{
+	return get_data_by_name(data_set, name).p;
+}
+
+// get data length by its name from a data set
+static int get_lenB_by_name(const vector<data> &data_set, const xmlChar* name)
+{
+	return get_data_by_name(data_set, name).lenb >> 3;
 }
 
 // read in on entity to the container
@@ -67,11 +82,11 @@ static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &containe
 			break;
 		T_BIT_REF_CASE:
 			//TODO len is based other in BIT
-			d.lenb = get_value_by_ref(container, e->attr.len.le);
+			d.lenb = *((u32*)get_value_by_ref(container, e->attr.len.le));
 			break;
 		T_BYTE_REF_CASE:
 			//TODO len is based other in BYTE
-			d.lenb = get_value_by_ref(container, e->attr.len.le) << 3;
+			d.lenb = *((u32*)get_value_by_ref(container, e->attr.len.le)) << 3;
 			break;
 		default:
 			printf("unkonw attr type %d of %s\n", e->attr.type, e->name);
@@ -91,6 +106,9 @@ static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &containe
 	// read the data from file
 	d.p = malloc((d.lenb >> 3) + 1);
 	reader.readb(d.p, d.lenb);
+#if 1
+	dump_data(d);
+#endif
 	container.push_back(d);
 	return 0;
 }
@@ -111,7 +129,7 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 		}
 		else if(es[i]->type == T_PARACHOICE)
 		{
-			long val = get_value_by_ref(container, es[i]->attr.depend);
+			long val = *((long*)get_value_by_ref(container, es[i]->attr.depend));
 			// match the choice range, continue to read
 			if(range_equal(es[i]->attr.rng, val))
 			{
