@@ -15,9 +15,9 @@ static bool range_equal(const range &rng, const long value)
 
 static void dump_data(const data& d)
 {
-	printf("\tdebug: %s %p = ", d.ref->name, d.p);
+	printf("\tdebug: %s %p %u = ", d.ref->name, d.p, d.lenb);
 	for(int i = 0; i < (d.lenb>>3) && i < 10; ++i)
-		printf("%x ", *((u8*)d.p+i));
+		printf("%02x ", *((u8*)d.p+i));
 	printf("\n");
 }
 
@@ -106,7 +106,7 @@ static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &containe
 	// read the data from file
 	d.p = malloc((d.lenb >> 3) + 1);
 	reader.readb(d.p, d.lenb);
-#if 1
+#if 0
 	dump_data(d);
 #endif
 	container.push_back(d);

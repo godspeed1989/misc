@@ -46,7 +46,7 @@ int filereader::parse_data_file()
 		// read in log's head
 		vector<PARA_entity*> &log_head_fmt = xfreader.format_file.log_head;
 		ret = readin_entities(dfreader, log_head_fmt, log_data.head);
-		printf("read in [%s] file log (%d)\n", dat_file_name, ret);
+		//printf("read in [%s] file log (%d)\n", dat_file_name, ret);
 		if(ret < 0)
 		{
 			printf("read in [%s] log head error (%d)\n", dat_file_name, ret);
@@ -63,7 +63,7 @@ int filereader::parse_data_file()
 		}
 
 		// get log head 'type' attr to determine log's type
-		u32 log_type = *((u32*)get_value_by_name(log_data.head, LOG_TYPE));
+		u16 log_type = *((u16*)get_value_by_name(log_data.head, LOG_TYPE));
 		EndianConvert(&log_type, get_lenB_by_name(log_data.head, LOG_TYPE));
 		// get log content format by the value of log's type
 		for(i = 0; i < xfreader.format_file.log_fmt.size(); ++i)
@@ -82,10 +82,9 @@ int filereader::parse_data_file()
 		EndianConvert(&log_len, get_lenB_by_name(log_data.head, LOG_LEN));
 		// get log content data
 		void * ptr = malloc(log_len);
-		dfreader.readB(ptr, log_len);
+		u32 lenb = dfreader.readB(ptr, log_len);
 		bitfile _freader;
-		_freader.open("strfile", ptr, log_len);
-		_freader.info();
+		_freader.open("strfile", ptr, 1 + (lenb >> 3));
 		free(ptr);
 
 		// read in log's content

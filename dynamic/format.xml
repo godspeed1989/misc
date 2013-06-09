@@ -35,7 +35,7 @@
 		</PARA>
 		<!-- Depend and Value= -->
 		<PARA name="MobileIdentity" type="4" length="1" typeEx="hex" notuse="2"/>
-		<PARA name="MobileIdentityUnion" type="3" length="0" depend="MobileIdentity">
+		<PARA name="MobileIdentityUnion" type="3" length="3" depend="MobileIdentity">
 			<PARACHOICE value="16">
 				<PARA name="mm11" type="4" length="2"/>
 				<PARA name="mm12" type="4" length="2"/>
