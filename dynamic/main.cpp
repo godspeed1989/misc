@@ -14,12 +14,13 @@ int main(int argc, char* argv[])
 		printf("error in parse XML file %s\n", argv[1]);
 		return -1;
 	}
-	if(freader.parse_data_file())
+	if(freader.parse_data_file() < 0)
 	{
 		printf("error in parse data file %s\n", argv[2]);
-		freader.summary();
 		return -1;
 	}
+	freader.summary();
+	freader.dump_all("dump.hex");
 	return 0;
 }
 

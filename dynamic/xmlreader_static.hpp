@@ -1,8 +1,8 @@
 #ifndef __XML_READER_STATIC_H__
 #define __XML_READER_STATIC_H__
 
-// resolve a ranged value
-static void resolveRng(range& rng, const xmlChar* str)
+// resolve a range value
+static void resolve_range(range& rng, const xmlChar* str)
 {
 	const char * p = (const char *)str;
 	if(xmlStrlen(str) == 0)
@@ -17,8 +17,8 @@ static void resolveRng(range& rng, const xmlChar* str)
 			if(str[i] == '~') break;
 		if(i == xmlStrlen(str))
 		{
-			rng.type = T_VALUE;
-			rng.low = rng.high = atol(p); // fixed value
+			rng.type = T_VALUE; // a fixed value
+			rng.low = rng.high = atol(p);
 		}
 		else
 		{
@@ -43,6 +43,12 @@ static PARA_entity* dup_PARA_entity(const PARA_entity* entity)
 	return pentity;
 }
 
+// free a PARA entity
+static void free_PARA_entity(PARA_entity* entity)
+{
+	free(entity);
+}
+
 // get a entity reference by its name
 static PARA_entity* get_ref_by_name(vector<PARA_entity*>* es, const xmlChar* name)
 {
@@ -62,12 +68,6 @@ static PARA_entity* get_ref_by_name(vector<PARA_entity*>* es, const xmlChar* nam
 	return *rit;
 }
 
-// free a PARA entity
-static void free_PARA_entity(PARA_entity* entity)
-{
-	free(entity);
-}
-
 // output functions
 static void show_range(const range& rng)
 {
@@ -79,29 +79,37 @@ static void show_range(const range& rng)
 		printf("%ld~%ld", rng.low, rng.high);
 }
 
+static void show_length(const PARA_entity *entity)
+{
+	printf("length=");
+	if(entity->attr.len.lb != -1)
+		printf("%db", entity->attr.len.lb);
+	else if(entity->attr.len.le)
+		printf("'$%s'", entity->attr.len.le->name);
+	else
+	{
+		printf("??unknown??");
+		throw;
+	}
+}
+
 static void show_PARA_entity(const PARA_entity *entity)
 {
 	for(int i = 2; i < entity->depth; ++i)
-		printf("    ");
+		printf("+---");
 	if(entity->type == T_PARA)
 	{
-		printf("name=%s type=%d length=", entity->name, entity->attr.type);
-		if(entity->attr.len.lb != -1)
-			printf("%db\n", entity->attr.len.lb);
-		else if(entity->attr.len.le)
-			printf("'$%s'\n", entity->attr.len.le->name);
-		else
-		{
-			printf("??unknown??\n");
-			throw;
-		}
+		printf("name=%s type=%d ", entity->name, entity->attr.type);
+		show_length(entity);
+		if(entity->depend)
+			printf(" depend='%s'", entity->depend->name);
 	}
 	else if(entity->type == T_PARACHOICE)
 	{
-		printf("CHOICE on %s value=", entity->attr.depend->name);
+		printf("CHOICE on %s value=", entity->depend->name);
 		show_range(entity->attr.rng);
-		printf("\n");
 	}
+	printf("\n");
 }
 
 static void show_one_log_fmt(const log_format *log)

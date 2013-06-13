@@ -15,9 +15,12 @@ static bool range_equal(const range &rng, const long value)
 
 static void dump_data(const data& d)
 {
+	u32 i;
 	printf("\tdebug: %s %p %u = ", d.ref->name, d.p, d.lenb);
-	for(int i = 0; i < (d.lenb>>3) && i < 10; ++i)
+	for(i = 0; i < (d.lenb>>3) && i < 10; ++i)
 		printf("%02x ", *((u8*)d.p+i));
+	if(i < (d.lenb>>3))
+		printf("...");
 	printf("\n");
 }
 
@@ -51,9 +54,6 @@ static const data& get_data_by_name(const vector<data> &data_set, const xmlChar*
 		printf("error: can't find data of [%s]\n", name);
 		throw;
 	}
-#if 0
-	dump_data(data_set[i]);
-#endif
 	return data_set[i];
 }
 
@@ -69,23 +69,29 @@ static int get_lenB_by_name(const vector<data> &data_set, const xmlChar* name)
 	return get_data_by_name(data_set, name).lenb >> 3;
 }
 
-// read in on entity to the container
+// read in one entity to the container
 static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &container)
 {
 	data d;
 	d.ref = e;
+	if(reader.eof())
+	{
+		printf("read in para entity [%s] reached EOF\n", e->name);
+		return -1;
+	}
 	// calculate the length by type
 	switch(e->attr.type)
 	{
 		T_BIT_CASE: T_BYTE_CASE:
+			//len is a direct value
 			d.lenb = e->attr.len.lb;
 			break;
 		T_BIT_REF_CASE:
-			//TODO len is based other in BIT
+			//len is based on other in BIT
 			d.lenb = *((u32*)get_value_by_ref(container, e->attr.len.le));
 			break;
 		T_BYTE_REF_CASE:
-			//TODO len is based other in BYTE
+			//len is based on other in BYTE
 			d.lenb = *((u32*)get_value_by_ref(container, e->attr.len.le)) << 3;
 			break;
 		default:
@@ -97,11 +103,6 @@ static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &containe
 		printf("warning: the length of %s is zero\n", e->name);
 		d.p = NULL;
 		return 0;
-	}
-	if(reader.eof())
-	{
-		printf("read in para entity [%s] reached EOF\n", e->name);
-		return -1;
 	}
 	// read the data from file
 	d.p = malloc((d.lenb >> 3) + 1);
@@ -129,7 +130,7 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 		}
 		else if(es[i]->type == T_PARACHOICE)
 		{
-			long val = *((long*)get_value_by_ref(container, es[i]->attr.depend));
+			long val = *((long*)get_value_by_ref(container, es[i]->depend));
 			// match the choice range, continue to read
 			if(range_equal(es[i]->attr.rng, val))
 			{
@@ -138,9 +139,9 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 			else
 			{
 				// skip the entities with the higher depth
-				size_t j = i;
+				size_t cur = i;
 				++i;
-				while(i < es.size() && es[i]->depth > es[j]->depth)
+				while(i < es.size() && es[i]->depth > es[cur]->depth)
 					++i;
 			}
 		}

@@ -24,7 +24,6 @@ typedef struct length
 {
 	int lb;
 	PARA_entity* le;
-	
 }length;
 
 // PARA type
@@ -33,14 +32,14 @@ typedef enum { T_PARA, T_PARACHOICE } PARA_entity_t;
 typedef struct PARA_entity
 {
 	int depth;
-	xmlChar* name;
+	xmlChar * name;
 	PARA_entity_t type;
+	PARA_entity * depend;  // nil if don't have dependence
 	struct attr
 	{
-		int type;            // type= in attr
+		int type;          // type= in attr
 		length len;
-		PARA_entity* depend; // nil if don't have dependence
-		range rng;           // only in para choice "value=1~3"
+		range rng;         // only in para choice "value=1~3"
 	}attr;
 }PARA_entity;
 

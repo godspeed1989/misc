@@ -21,6 +21,7 @@ typedef struct log_data
 {
 	vector<data> head;
 	vector<data> content;
+	data left;
 }log_data;
 // content of a data file
 typedef struct file_data
@@ -41,6 +42,7 @@ public:
 	int parse_fmt_file();
 	int parse_data_file();
 	void summary();
+	void dump_all(const char *file);
 	~filereader()
 	{
 		xfreader.cleanup();

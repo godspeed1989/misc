@@ -20,46 +20,49 @@
  */
 void xmlreader::processNode(xmlTextReaderPtr reader)
 {
-	const xmlChar *name, *s;
-	static PARA_entity entity;
-	// type
+	const xmlChar *s;
+	PARA_entity entity;
+	memset(&entity, 0, sizeof(PARA_entity));
+	// XML node type
 	int type = xmlTextReaderNodeType(reader);
 	if(type != XML_READER_TYPE_ELEMENT)
+	{
 		return;
-	memset(&entity, 0, sizeof(PARA_entity));
-	// depth
+	}
+	// XML node depth
 	entity.depth = xmlTextReaderDepth(reader);
-	// <name attr=""></name>
-	name = xmlTextReaderConstName(reader);
-	if(name == NULL)
-	 	name = BAD_CAST "nil";
-	if(xmlStrncasecmp(name, AREADESC, MLEN) == 0)// 0 <AREADESC>
+	// <node_name attr=""></node_name>
+	const xmlChar *node_name = xmlTextReaderConstName(reader);
+	if(node_name == NULL)
+	 	node_name = BAD_CAST "nil";
+	// process the XML node depend on its name
+	if(xmlStrncasecmp(node_name, AREADESC, MLEN) == 0)// 0 <AREADESC>
 	{
 		printf("**Processing <AREADESC> ...\n");
 		assert(entity.depth == 0);
 		return;
 	}
-	else if(xmlStrncasecmp(name, FILEHEAD, MLEN) == 0)// 1 <FILEHEAD>
+	else if(xmlStrncasecmp(node_name, FILEHEAD, MLEN) == 0)// 1 <FILEHEAD>
 	{
 		printf("***Processing <FILEHEAD> ...\n");
 		assert(entity.depth == 1);
 		processing = &format_file.file_head;
 		return;
 	}
-	else if(xmlStrncasecmp(name, LOGHEAD, MLEN) == 0)// 1 <LOGHEAD>
+	else if(xmlStrncasecmp(node_name, LOGHEAD, MLEN) == 0)// 1 <LOGHEAD>
 	{
 		printf("***Processing <LOGHEAD> ...\n");
 		assert(entity.depth == 1);
 		processing = &format_file.log_head;
 		return;
 	}
-	else if(xmlStrncasecmp(name, LOGTYPE, MLEN) == 0)// 1 <LOGTYPE>
+	else if(xmlStrncasecmp(node_name, LOGTYPE, MLEN) == 0)// 1 <LOGTYPE>
 	{
 		printf("***Processing <LOGTYPE> ...\n");
 		assert(entity.depth == 1);
 		return;
 	}
-	else if(xmlStrncasecmp(name, LOG, MLEN) == 0)// 2 <LOG type="" ...
+	else if(xmlStrncasecmp(node_name, LOG, MLEN) == 0)// 2 <LOG type="" ...
 	{
 		printf("****Processing <LOG type=");
 		assert(entity.depth == 2);
@@ -67,13 +70,18 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		log_format *one_log_fmt = (log_format *)malloc(sizeof(log_format));
 		// get "type=" attr to setup range
 		s = xmlTextReaderGetAttributeNo(reader, 0);
-		resolveRng(one_log_fmt->rng, s);
+		resolve_range(one_log_fmt->rng, s);
+		printf("'%s'", s);
+		// output describe infomation if exist
+		s = xmlTextReaderGetAttributeNo(reader, 1);
+		if(s)
+			printf(" %s", s);
+		printf("> ...\n");
 		format_file.log_fmt.push_back(one_log_fmt);
-		printf("'%s'> ...\n", s);
 		processing = &one_log_fmt->entities;
 		return;
 	}
-	else if(xmlStrncasecmp(name, PARA, MLEN) == 0)// <PARA ...
+	else if(xmlStrncasecmp(node_name, PARA, MLEN) == 0)// <PARA ...
 	{
 		entity.type = T_PARA;
 		assert(xmlTextReaderAttributeCount(reader) > 0);
@@ -91,25 +99,25 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 				entity.attr.type = atoi((const char*)s); // type=""
 			}
 			else if(i == 2)        // length or depend ??
-			{	//TODO
+			{	//TODO: get detailed format infomation
 				switch(entity.attr.type)
 				{
 					T_BYTE_CASE:
 						entity.attr.len.lb = atoi((const char*)s) << 3;
-					break;
+						break;
 					T_BIT_CASE:
 						entity.attr.len.lb = atoi((const char*)s);
-					break;
+						break;
 					T_BYTE_REF_CASE: T_BIT_REF_CASE:
 						entity.attr.len.lb = -1;
 						entity.attr.len.le = get_ref_by_name(processing, s);
-					break;
+						break;
 					default:
 						printf("unknow attr type %d of %s\n", entity.attr.type, entity.name);
 						throw;
 				}
 			}
-			else if(i == 3)//??
+			else if(i == 3)
 			{
 				;//TODO
 			}
@@ -120,40 +128,43 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		}
 		processing->push_back(dup_PARA_entity(&entity));
 	}
-	else if(xmlStrncasecmp(name, PARACHOICE, MLEN) == 0)//<PARACHOCE ...
+	else if(xmlStrncasecmp(node_name, PARACHOICE, MLEN) == 0)// <PARACHOCE ...
 	{
 		entity.type = T_PARACHOICE;
 		if(xmlTextReaderAttributeCount(reader) > 0)
 		{
 			// vlaue = a range
 			s = xmlTextReaderGetAttributeNo(reader, 0);
-			resolveRng(entity.attr.rng, s);
+			resolve_range(entity.attr.rng, s);
+			// get parameter choice
 			vector<PARA_entity*>::reverse_iterator rit;
 			for(rit=processing->rbegin(); rit!=processing->rend(); ++rit)
 			{
 				if((*rit)->depth == entity.depth-1)
 				{
-					entity.attr.depend = *rit;
+					entity.depend = *rit;
 					break;
 				}
 			}
 			if(rit == processing->rend())
 			{
-				printf("can't find PARACHOICE %s dependency\n", entity.name);
+				printf("can't find PARACHOICE value=%s dependency\n", s);
 				throw;
 			}
 			processing->push_back(dup_PARA_entity(&entity));
 		}
-		else
+		else // no attribute
 		{
-			//when a PARACHOICE without 'value=', the PARA before it is useless
+			// TODO make sure when a PARACHOICE without 'value='
+			// the one PARA before it is useless
+			free_PARA_entity(processing->back());
 			processing->pop_back();
 			return;
 		}
 	}
-	else
+	else// <??? ...
 	{
-		printf("Unknow XML node type [%s]\n", name);
+		printf("Unknow XML node name [%s]\n", node_name);
 		exit(-1);
 	}
 	
@@ -207,6 +218,7 @@ int xmlreader::processFile(const char* file)
 	}
 }
 
+// print out the XML file content
 void xmlreader::printOut()
 {
 	vector<PARA_entity*>::iterator it;
@@ -224,6 +236,7 @@ void xmlreader::printOut()
 	printf("========= Finish output read in =========\n");
 }
 
+// clean up function
 void xmlreader::cleanup()
 {
 	vector<PARA_entity*>::iterator it;

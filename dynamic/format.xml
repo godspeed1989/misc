@@ -28,17 +28,17 @@
 		<!-- empty -->
 		<PARA name="ServiceSetup" type="16" length="" tag="16" notuse="2">
 			<PARACHOICE>
-				<PARA name="ss1" type="4" length="2"/>
+				<PARA name="ss1" type="3" length="2"/>
 				<PARA name="ss2" type="4" length="2"/>
-				<PARA name="ss3" type="4" length="2"/>
+				<PARA name="ss3" type="3" length="2"/>
 			</PARACHOICE>
 		</PARA>
 		<!-- Depend and Value= -->
-		<PARA name="MobileIdentity" type="4" length="1" typeEx="hex" notuse="2"/>
+		<PARA name="MobileIdentity" type="3" length="1" typeEx="hex" notuse="2"/>
 		<PARA name="MobileIdentityUnion" type="3" length="3" depend="MobileIdentity">
 			<PARACHOICE value="16">
 				<PARA name="mm11" type="4" length="2"/>
-				<PARA name="mm12" type="4" length="2"/>
+				<PARA name="mm12" type="3" length="2"/>
 				<PARA name="mm13" type="4" length="2"/>
 			</PARACHOICE>
 			<PARACHOICE value="18">
@@ -51,9 +51,9 @@
 	</LOG>
 	<!-- log type 18 -->
 	<LOG type="18" disp="SPU Single User Log">
-		<PARA type="4" name="cpuID" length="2"/>
-		<PARA type="4" name="board" length="2"/>
-		<PARA type="4" name="ulCode" length="2"/>
+		<PARA name="cpuID" type="4" length="2"/>
+		<PARA name="board" type="4" length="2"/>
+		<PARA name="ulCode" type="3" length="2"/>
 		<!-- Depend and Value= , length is useless? -->
 		<PARA name="ulPara1" length="4" type="3" depend="ulCode" notuse="3">
 			<PARACHOICE value="12">
