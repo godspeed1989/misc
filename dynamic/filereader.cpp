@@ -32,7 +32,7 @@ int filereader::parse_data_file()
 	// read in data file's header
 	vector<PARA_entity*> &file_head_fmt = xfreader.format_file.file_head;
 	ret = readin_entities(dfreader, file_head_fmt, data_file.head);
-	printf("read in [%s] file head (%d)\n", dat_file_name, ret);
+	printf("read in [%s] file head (%zu)\n", dat_file_name, data_file.head.size());
 	if(ret < 0)
 		return ret;
 
@@ -114,7 +114,7 @@ int filereader::parse_data_file()
 		// step 3. add one log data to the logs
 		data_file.logs.push_back(log_data);
 	}
-	printf("read in [%s] with %d logs\n", dat_file_name, data_file.logs.size());
+	printf("read in [%s] with %zu logs\n", dat_file_name, data_file.logs.size());
 	return ret;
 }
 
@@ -123,8 +123,8 @@ void filereader::summary()
 {
 	printf("~~~summary~~~\n");
 	printf("%s %s\n", fmt_file_name, dat_file_name);
-	printf("head %d\n", data_file.head.size());
-	printf("logs %d\n", data_file.logs.size());
+	printf("head %zu\n", data_file.head.size());
+	printf("logs %zu\n", data_file.logs.size());
 	printf("~~~~~~~~~~~~~\n");
 }
 

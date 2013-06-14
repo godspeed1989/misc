@@ -160,7 +160,7 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 		else
 			throw;
 	}
-	return container.size();
+	return 0;
 }
 
 #endif

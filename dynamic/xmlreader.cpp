@@ -224,13 +224,13 @@ void xmlreader::printOut()
 	vector<PARA_entity*>::iterator it;
 	vector<log_format*>::iterator lit;
 	printf("======== Output read in to check ========\n");
-	printf("-----<File head info(%d)>-----\n", format_file.file_head.size());
+	printf("-----<File head info(%zu)>-----\n", format_file.file_head.size());
 	for(it = format_file.file_head.begin(); it != format_file.file_head.end(); ++it)
 		show_PARA_entity(*it);
-	printf("-----<Log head info(%d)>-----\n", format_file.log_head.size());
+	printf("-----<Log head info(%zu)>-----\n", format_file.log_head.size());
 	for(it = format_file.log_head.begin(); it != format_file.log_head.end(); ++it)
 		show_PARA_entity(*it);
-	printf("-----<Log type info(%d)>-----\n", format_file.log_fmt.size());
+	printf("-----<Log type info(%zu)>-----\n", format_file.log_fmt.size());
 	for(lit = format_file.log_fmt.begin(); lit != format_file.log_fmt.end(); ++lit)
 		show_one_log_fmt(*lit);
 	printf("========= Finish output read in =========\n");
