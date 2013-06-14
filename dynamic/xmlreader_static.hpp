@@ -116,7 +116,7 @@ static void show_one_log_fmt(const log_format *log)
 {
 	printf("<LOG type=");
 	show_range(log->rng);
-	printf(">(%d)\n", log->entities.size());
+	printf(">(%zu)\n", log->entities.size());
 	for(size_t i = 0; i < log->entities.size(); ++i)
 	{
 		show_PARA_entity(log->entities[i]);

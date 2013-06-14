@@ -36,8 +36,8 @@ private:
 	char fmt_file_name[MAX_PATH];
 	char dat_file_name[MAX_PATH];
 	xmlreader xfreader;
-	file_data data_file;
 public:
+	file_data data_file;
 	filereader(const char *fmt_file, const char *dat_file);
 	int parse_fmt_file();
 	int parse_data_file();
