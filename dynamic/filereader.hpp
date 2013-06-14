@@ -49,5 +49,9 @@ public:
 	}
 }filereader;
 
+#define LOG_MAGIC   (const xmlChar*)"Verifyflag"
+#define LOG_TYPE    (const xmlChar*)"Logtype"
+#define LOG_LEN     (const xmlChar*)"Loglength"
+
 #endif
 

@@ -1,11 +1,6 @@
 #include "filereader.hpp"
 #include "filereader_static.hpp"
 #include "endian.hpp"
-#include <cstring>
-
-#define LOG_MAGIC   (const xmlChar*)"Verifyflag"
-#define LOG_TYPE    (const xmlChar*)"Logtype"
-#define LOG_LEN     (const xmlChar*)"Loglength"
 
 filereader::filereader(const char *fmtfile, const char *datfile)
 {

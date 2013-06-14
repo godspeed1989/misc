@@ -81,7 +81,7 @@ private:
 
 // the "length=" attribute's type
 #define T_BIT_CASE          case 3
-#define T_BYTE_CASE         case 0: case 4: case 16
+#define T_BYTE_CASE         case 0 : case 4 : case 16
 #define T_BIT_REF_CASE      case 7
 #define T_BYTE_REF_CASE     case 11
 

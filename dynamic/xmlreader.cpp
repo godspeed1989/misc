@@ -67,7 +67,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		printf("****Processing <LOG type=");
 		assert(entity.depth == 2);
 		assert(xmlTextReaderAttributeCount(reader) > 0);
-		log_format *one_log_fmt = (log_format *)malloc(sizeof(log_format));
+		log_format *one_log_fmt = new log_format;
 		// get "type=" attr to setup range
 		s = xmlTextReaderGetAttributeNo(reader, 0);
 		resolve_range(one_log_fmt->rng, s);
@@ -249,7 +249,7 @@ void xmlreader::cleanup()
 	{
 		for(it = (*lit)->entities.begin(); it != (*lit)->entities.end(); ++it)
 			free_PARA_entity(*it);
-		free(*lit);
+		delete (*lit);
 	}
 	format_file.file_head.clear();
 	format_file.log_head.clear();
