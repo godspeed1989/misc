@@ -15,6 +15,7 @@ typedef struct data
 	PARA_entity* ref;
 	u32 lenb;
 	void *p;
+	data() : ref(NULL), lenb(-1), p(NULL) {}
 }data;
 
 typedef struct log_data

@@ -27,6 +27,7 @@ static void dump_data(const data& d)
 static const data& get_data_by_name(const vector<data> &data_set, const xmlChar* name)
 {
 	size_t i;
+	static data d;
 	for(i = 0; i < data_set.size(); ++i)
 	{
 		if(xmlStrncasecmp(data_set[i].ref->name, name, MLEN) == 0)
@@ -34,8 +35,8 @@ static const data& get_data_by_name(const vector<data> &data_set, const xmlChar*
 	}
 	if(i == data_set.size())
 	{
-		printf("error: can't find data of [%s]\n", name);
-		throw;
+		printf("warning: can't find data of [%s]\n", name);
+		return d;
 	}
 	return data_set[i];
 }

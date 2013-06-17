@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "../filereader.hpp"
+#include "../filereader_static.hpp"
+#include <QFile>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QDebug>
@@ -22,6 +24,7 @@ MainWindow::MainWindow()
 	up->addStretch(25);
 
 	table = new QTableWidget(this);
+	table->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 	down->addWidget(table);
 
 	QVBoxLayout *layout;
@@ -34,6 +37,22 @@ MainWindow::MainWindow()
 
 void MainWindow::do_parse_file()
 {
+	// read in interested field's name
+	QStringList header_list;
+	QString file_path = file_dialog.getOpenFileName(this, tr("open file"), ".", tr("*.txt\n*.*"));
+	QFile file(file_path);
+	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return;
+	QTextStream in(&file);
+	QString line = in.readLine();
+	while(!line.isNull())
+	{
+		if(line.length() > 0)
+			header_list += line;
+		line = in.readLine();
+	}
+
+	// read in data file
 	if(dat_file_path.isNull() || fmt_file_path.isNull())
 		return;
 	filereader freader(fmt_file_path.toStdString().c_str(), dat_file_path.toStdString().c_str());
@@ -48,9 +67,26 @@ void MainWindow::do_parse_file()
 		return;
 	}
 	freader.summary();
-	// TODO show table items
-	table->setColumnCount(5);
+
+	// show table items
+	table->setColumnCount(header_list.size());
+	table->setHorizontalHeaderLabels(header_list);
 	table->setRowCount(freader.data_file.logs.size());
+	// TODO show table items
+	for(size_t i = 0; i < freader.data_file.logs.size(); ++i)
+	{
+		for(int j = 0; j < header_list.size(); ++j)
+		{
+			//TODO query and show
+			void * p;
+			p = get_valuep_by_name(freader.data_file.logs[i].content, \
+				(const xmlChar*)header_list[j].toStdString().c_str());
+			if(p == NULL)
+				table->setItem(i, j, new QTableWidgetItem("nil"));
+			else
+				;
+		}
+	}
 }
 
 void MainWindow::open_dat_file()

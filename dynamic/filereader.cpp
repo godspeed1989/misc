@@ -19,6 +19,7 @@ int filereader::parse_data_file()
 {
 	int ret;
 	size_t i;
+	void * p;
 	bitfile dfreader;
 #if 1
 	xfreader.printOut();
@@ -53,7 +54,10 @@ int filereader::parse_data_file()
 		// check log head magic number
 		if(2 != get_lenB_by_name(log_data.head, LOG_MAGIC))
 			throw;
-		u16 magic = *((u16*)get_valuep_by_name(log_data.head, LOG_MAGIC));
+		p = get_valuep_by_name(log_data.head, LOG_MAGIC);
+		if(p == NULL)
+			throw;
+		u16 magic = *((u16*)p);
 		if(magic != 0xABAB && magic != 0xCDCD)
 		{
 			printf("log head magic check error %x\n", magic);
@@ -65,7 +69,10 @@ int filereader::parse_data_file()
 		// get log head 'type' attr to determine log's type
 		if(2 != get_lenB_by_name(log_data.head, LOG_TYPE))
 			throw;
-		u16 log_type = *((u16*)get_valuep_by_name(log_data.head, LOG_TYPE));
+		p = get_valuep_by_name(log_data.head, LOG_TYPE);
+		if(p == NULL)
+			throw;
+		u16 log_type = *((u16*)p);
 		EndianConvert(&log_type, get_lenB_by_name(log_data.head, LOG_TYPE));
 		// get log content format by the value of log's type
 		for(i = 0; i < xfreader.format_file.log_fmt.size(); ++i)
@@ -83,7 +90,10 @@ int filereader::parse_data_file()
 		// get log head 'length' attr to determine log content length
 		if(4 != get_lenB_by_name(log_data.head, LOG_LEN))
 			throw;
-		u32 log_len = *((u32*)get_valuep_by_name(log_data.head, LOG_LEN));
+		p = get_valuep_by_name(log_data.head, LOG_LEN);
+		if(p == NULL)
+			throw;
+		u32 log_len = *((u32*)p);
 		EndianConvert(&log_len, get_lenB_by_name(log_data.head, LOG_LEN));
 		// get log content data
 		void * ptr = malloc(log_len);
