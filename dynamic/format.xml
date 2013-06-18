@@ -22,9 +22,9 @@
 <LOGTYPE>
 	<!-- log type 16 -->
 	<LOG type="16" disp="Normal Log">
-		<PARA name="cpuID" type="4" length="2"/>
-		<PARA name="board" type="4" length="2"/>
-		<PARA name="imsi" type="4" length="2"/>
+		<PARA name="cpuID" type="4" length="4"/>
+		<PARA name="board" type="4" length="1"/>
+		<PARA name="RecordCnt" type="4" length="1"/>
 		<!-- empty -->
 		<PARA name="ServiceSetup" type="16" length="" tag="16" notuse="2">
 			<PARACHOICE>
@@ -51,9 +51,10 @@
 	</LOG>
 	<!-- log type 18 -->
 	<LOG type="18" disp="SPU Single User Log">
-		<PARA name="cpuID" type="4" length="2"/>
-		<PARA name="board" type="4" length="2"/>
-		<PARA name="ulCode" type="3" length="2"/>
+		<PARA name="cpuID" type="4" length="4"/>
+		<PARA name="board" type="4" length="1"/>
+		<PARA name="RecordCnt" type="4" length="1"/>
+		<PARA name="lCode" type="3" length="2"/>
 		<!-- Depend and Value= , length is useless? -->
 		<PARA name="ulPara1" length="4" type="3" depend="ulCode" notuse="3">
 			<PARACHOICE value="12">
@@ -66,9 +67,9 @@
 	</LOG>
 	<!-- log type others -->
 	<LOG type="" disp="others">
-		<PARA name="cpuID" type="4" length="2"/>
-		<PARA name="board" type="4" length="2"/>
-		<PARA name="data" type="4" length="2"/>
+		<PARA name="cpuID" type="4" length="4"/>
+		<PARA name="board" type="4" length="1"/>
+		<PARA name="RecordCnt" type="4" length="1"/>
 		<PARA name="lCode" type="4" length="2"/>
 		<PARA name="Cascade" type="3" length="4" depend="lCode" notuse="3">
 			<PARACHOICE value="12">

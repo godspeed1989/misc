@@ -3,8 +3,6 @@ TEMPLATE = app
 DEPENDPATH += .
 INCLUDEPATH += .
 
-
-# Input
 HEADERS += mainwindow.h
 
 SOURCES += main.cpp \
@@ -13,3 +11,5 @@ SOURCES += main.cpp \
 INCLUDEPATH += /usr/include/libxml2
 
 LIBS += ../libdynamic.a -lxml2
+
+QMAKE_CXXFLAGS += -Wno-unused-function

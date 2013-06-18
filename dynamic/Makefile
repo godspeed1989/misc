@@ -1,7 +1,7 @@
 CC = g++
 AR = ar
 LIBS += `xml2-config --libs`
-CPPFLAGS = -Wall `xml2-config --cflags` -g
+CPPFLAGS = -Wall `xml2-config --cflags` -g -Wno-unused-function
 
 TARGET = dynamic
 

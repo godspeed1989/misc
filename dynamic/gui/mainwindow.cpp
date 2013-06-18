@@ -72,19 +72,28 @@ void MainWindow::do_parse_file()
 	table->setColumnCount(header_list.size());
 	table->setHorizontalHeaderLabels(header_list);
 	table->setRowCount(freader.data_file.logs.size());
-	// TODO show table items
+	// show table item
 	for(size_t i = 0; i < freader.data_file.logs.size(); ++i)
 	{
 		for(int j = 0; j < header_list.size(); ++j)
 		{
-			//TODO query and show
-			void * p;
-			p = get_valuep_by_name(freader.data_file.logs[i].content, \
-				(const xmlChar*)header_list[j].toStdString().c_str());
-			if(p == NULL)
+			const struct data &d
+			 = get_data_by_name(freader.data_file.logs[i].content, \
+						(const xmlChar*)header_list[j].toStdString().c_str());
+			if(d.p == NULL)
 				table->setItem(i, j, new QTableWidgetItem("nil"));
 			else
-				;
+			{
+				static char str[4];
+				QString qstr;
+				u32 lenB = (d.lenb >> 3) +  ((d.lenb & 7) != 0);
+				for(int k = lenB - 1; k >= 0; --k)
+				{
+					snprintf(str, 4, " %02x", *((unsigned char*)d.p + k));
+					qstr.append(str);
+				}
+				table->setItem(i, j, new QTableWidgetItem(qstr));
+			}
 		}
 	}
 }
