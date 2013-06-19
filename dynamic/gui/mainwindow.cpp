@@ -2,8 +2,7 @@
 #include "../filereader.hpp"
 #include "../filereader_static.hpp"
 #include <QFile>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
+#include <QtGui>
 #include <QDebug>
 
 MainWindow::MainWindow()
@@ -24,7 +23,7 @@ MainWindow::MainWindow()
 	up->addStretch(25);
 
 	table = new QTableWidget(this);
-	table->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+	table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	down->addWidget(table);
 
 	QVBoxLayout *layout;
@@ -33,6 +32,11 @@ MainWindow::MainWindow()
 	layout->addWidget(table);
 	this->setLayout(layout);
 	this->resize(800, 600);
+
+	copyAction = new QAction(table);
+	copyAction->setShortcut(QString("Ctrl+C"));
+	connect(copyAction, SIGNAL(triggered()), this, SLOT(actionCopy()));
+	table->addAction(copyAction);
 }
 
 void MainWindow::do_parse_file()
@@ -80,8 +84,10 @@ void MainWindow::do_parse_file()
 			const struct data &d
 			 = get_data_by_name(freader.data_file.logs[i].content, \
 						(const xmlChar*)header_list[j].toStdString().c_str());
+			QTableWidgetItem *item = new QTableWidgetItem();
+			item->setTextAlignment(Qt::AlignRight);
 			if(d.p == NULL)
-				table->setItem(i, j, new QTableWidgetItem("nil"));
+				item->setText(QString("nil"));
 			else
 			{
 				static char str[4];
@@ -92,10 +98,37 @@ void MainWindow::do_parse_file()
 					snprintf(str, 4, " %02x", *((unsigned char*)d.p + k));
 					qstr.append(str);
 				}
-				table->setItem(i, j, new QTableWidgetItem(qstr));
+				item->setText(QString(qstr));
 			}
+			table->setItem(i, j, item);
 		}
 	}
+}
+
+QTableWidgetSelectionRange MainWindow::selectedRange() const
+{
+	QList<QTableWidgetSelectionRange> ranges = table->selectedRanges();
+	if(ranges.isEmpty())
+		return QTableWidgetSelectionRange();
+	return ranges.first();
+}
+
+void MainWindow::actionCopy()
+{
+	QString str;
+	QTableWidgetSelectionRange range = selectedRange();
+	for(int i = 0; i< range.rowCount(); ++i)
+	{
+		if(i > 0)
+			str += "\n";
+		for(int j = 0; j < range.columnCount(); ++j)
+		{
+			if(j > 0)
+				str += "\t";
+			str += table->item(range.topRow() + i, range.leftColumn() + j)->text();
+		}
+	}
+	QApplication::clipboard()->setText(str);
 }
 
 void MainWindow::open_dat_file()

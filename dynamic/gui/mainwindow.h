@@ -24,6 +24,11 @@ private slots:
 	void open_dat_file();
 	void open_fmt_file();
 	void do_parse_file();
+private:
+	QAction *copyAction;
+	QTableWidgetSelectionRange selectedRange() const;
+public slots:
+	void actionCopy();
 };
 
 #endif
