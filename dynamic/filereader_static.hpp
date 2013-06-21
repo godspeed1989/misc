@@ -13,6 +13,7 @@ static bool range_equal(const range &rng, const long value)
 	return false;
 }
 
+#if 0
 static void dump_data(const data& d)
 {
 	u32 i;
@@ -23,11 +24,12 @@ static void dump_data(const data& d)
 		printf("...");
 	printf("\n");
 }
+#endif
 
 static const data& get_data_by_name(const vector<data> &data_set, const xmlChar* name)
 {
 	size_t i;
-	static data d;
+	static const data d;
 	for(i = 0; i < data_set.size(); ++i)
 	{
 		if(xmlStrncasecmp(data_set[i].ref->name, name, MLEN) == 0)
@@ -42,7 +44,7 @@ static const data& get_data_by_name(const vector<data> &data_set, const xmlChar*
 }
 
 // get a value by its name from a data set
-static void* get_valuep_by_name(const vector<data> &data_set, const xmlChar* name)
+static const void* get_valuep_by_name(const vector<data> &data_set, const xmlChar* name)
 {
 	return get_data_by_name(data_set, name).p;
 }
@@ -54,10 +56,8 @@ static int get_lenB_by_name(const vector<data> &data_set, const xmlChar* name)
 	return  (lenb >> 3) + ((lenb & 7) != 0);
 }
 
-// get a value by its reference pointer
-static int get_value_by_ref(const vector<data> &data_set, const PARA_entity* ref)
+static const data& get_data_by_ref(const vector<data> &data_set, const PARA_entity* ref)
 {
-	int value;
 	size_t i;
 	for(i = 0; i < data_set.size(); ++i)
 	{
@@ -69,11 +69,20 @@ static int get_value_by_ref(const vector<data> &data_set, const PARA_entity* ref
 		printf("error: can't find value refer to [%s]\n", ref->name);
 		throw;
 	}
-	switch(get_lenB_by_name(data_set, ref->name))
+	return data_set[i];
+}
+
+// get a value by its reference pointer
+static int get_value_by_ref(const vector<data> &data_set, const PARA_entity* ref)
+{
+	int lenB, value;
+	const data &dat = get_data_by_ref(data_set, ref);
+	lenB = (dat.lenb >> 3) + ((dat.lenb & 7) != 0);
+	switch(lenB)
 	{
-		case 1: value = *((char*)data_set[i].p);	break;
-		case 2: value = *((short*)data_set[i].p);	break;
-		case 4: value = *((int*)data_set[i].p);		break;
+		case 1:  value = *((char*)dat.p);	break;
+		case 2:  value = *((short*)dat.p);	break;
+		case 4:  value = *((int*)dat.p);	break;
 		default:
 			printf("%s: not suppported value length\n", ref->name);
 			throw;
@@ -82,7 +91,7 @@ static int get_value_by_ref(const vector<data> &data_set, const PARA_entity* ref
 }
 
 // read in one entity to the container
-static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &container)
+static int readin_entity(bitfile &reader, const PARA_entity* e, vector<data> &container)
 {
 	data d;
 	d.ref = e;
@@ -127,10 +136,9 @@ static int readin_entity(bitfile &reader, PARA_entity* e, vector<data> &containe
 }
 
 // read in set of entites to a container
-static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data> &container)
+static int readin_entities(bitfile &reader, const vector<PARA_entity*> es, vector<data> &container)
 {
-	size_t i;
-	for(i = 0; i < es.size(); ++i)
+	for(size_t i = 0; i < es.size(); ++i)
 	{
 		if(es[i]->type == T_PARA)
 		{
@@ -143,7 +151,6 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 		else if(es[i]->type == T_PARACHOICE)
 		{
 			long val = get_value_by_ref(container, es[i]->depend);
-
 			// match the choice range, continue to read
 			if(range_equal(es[i]->attr.rng, val))
 			{
@@ -159,7 +166,10 @@ static int readin_entities(bitfile &reader, vector<PARA_entity*> es, vector<data
 			}
 		}
 		else
+		{
+			// should never reached here
 			throw;
+		}
 	}
 	return 0;
 }

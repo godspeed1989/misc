@@ -12,9 +12,9 @@ using namespace std;
 
 typedef struct data
 {
-	PARA_entity* ref;
+	const PARA_entity* ref;
 	u32 lenb;
-	void *p;
+	void * p;
 	data() : ref(NULL), lenb(-1), p(NULL) {}
 }data;
 
@@ -22,12 +22,12 @@ typedef struct log_data
 {
 	vector<data> head;
 	vector<data> content;
-	data left;
+	data left;             // left data bits after read in log content
 }log_data;
 // content of a data file
 typedef struct file_data
 {
-	vector<data> head; // file's header
+	vector<data> head;     // file's header
 	vector<log_data> logs; // content log's head and it's content
 }file_data;
 

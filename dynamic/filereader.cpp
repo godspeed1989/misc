@@ -19,9 +19,9 @@ int filereader::parse_data_file()
 {
 	int ret;
 	size_t i;
-	void * p;
+	const void * p;
 	bitfile dfreader;
-#if 1
+#if 0
 	xfreader.printOut();
 #endif
 	if(dfreader.open(dat_file_name, READ))
@@ -44,7 +44,9 @@ int filereader::parse_data_file()
 		// step 1. read in log's head
 		vector<PARA_entity*> &log_head_fmt = xfreader.format_file.log_head;
 		ret = readin_entities(dfreader, log_head_fmt, log_data.head);
-		//printf("read in [%s] file log (%d)\n", dat_file_name, ret);
+	#if 0
+		printf("read in [%s] file log (%d)\n", dat_file_name, ret);
+	#endif
 		if(ret < 0)
 		{
 			printf("read in [%s] log head error (%d)\n", dat_file_name, ret);
@@ -87,7 +89,7 @@ int filereader::parse_data_file()
 			break;
 		}
 
-		// get log head 'length' attr to determine log content length
+		// get log head 'length' attr to determine length of log content
 		if(4 != get_lenB_by_name(log_data.head, LOG_LEN))
 			throw;
 		p = get_valuep_by_name(log_data.head, LOG_LEN);
@@ -124,7 +126,7 @@ int filereader::parse_data_file()
 		// step 3. add one log data to the logs
 		data_file.logs.push_back(log_data);
 	}
-	printf("read in [%s] with %zu logs\n", dat_file_name, data_file.logs.size());
+	printf("total read in [%s] with %zu logs\n", dat_file_name, data_file.logs.size());
 	return ret;
 }
 
@@ -159,7 +161,7 @@ void filereader::dump_all(const char *file)
 		ofile.writeb(data_file.logs[i].left.p, data_file.logs[i].left.lenb);
 	}
 	ofile.writeout();
-	printf("dump to the data file [%s]\n", file);
+	printf("dumped all read in to data file [%s]\n", file);
 	ofile.close();
 }
 

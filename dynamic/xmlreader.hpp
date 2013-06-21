@@ -19,11 +19,11 @@ typedef struct range
 }range;
 
 struct PARA_entity;
-// length, cound be a instant value or value of others
-typedef struct length
+// PARA's length, cound be a constant value or depend on another
+typedef union length
 {
 	int lb;
-	PARA_entity* le;
+	const PARA_entity* le;
 }length;
 
 // PARA type
@@ -32,14 +32,14 @@ typedef enum { T_PARA, T_PARACHOICE } PARA_entity_t;
 typedef struct PARA_entity
 {
 	int depth;
-	xmlChar * name;
+	const xmlChar * name;
 	PARA_entity_t type;
-	PARA_entity * depend;  // nil if don't have dependence
+	const PARA_entity * depend;  // used by "PARACHOICE" or "depend="
 	struct attr
 	{
-		int type;          // type= in attr
+		int type;        // type= in attr
 		length len;
-		range rng;         // only in para choice "value=1~3"
+		range rng;       // only in para choice "value=1~3"
 	}attr;
 }PARA_entity;
 
