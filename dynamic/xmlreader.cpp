@@ -40,27 +40,27 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 	// process the XML node depend on its name
 	if(xmlStrncasecmp(node_name, AREADESC, MLEN) == 0)// 0 <AREADESC>
 	{
-		printf("**Processing <AREADESC> ...\n");
+		printf("**Processing <%s> ...\n", AREADESC);
 		assert(entity.depth == 0);
 		return;
 	}
 	else if(xmlStrncasecmp(node_name, FILEHEAD, MLEN) == 0)// 1 <FILEHEAD>
 	{
-		printf("***Processing <FILEHEAD> ...\n");
+		printf("***Processing <%s> ...\n", FILEHEAD);
 		assert(entity.depth == 1);
 		processing = &format_file.file_head;
 		return;
 	}
 	else if(xmlStrncasecmp(node_name, LOGHEAD, MLEN) == 0)// 1 <LOGHEAD>
 	{
-		printf("***Processing <LOGHEAD> ...\n");
+		printf("***Processing <%s> ...\n", LOGHEAD);
 		assert(entity.depth == 1);
 		processing = &format_file.log_head;
 		return;
 	}
 	else if(xmlStrncasecmp(node_name, LOGTYPE, MLEN) == 0)// 1 <LOGTYPE>
 	{
-		printf("***Processing <LOGTYPE> ...\n");
+		printf("***Processing <%s> ...\n", LOGTYPE);
 		assert(entity.depth == 1);
 		return;
 	}
