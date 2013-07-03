@@ -127,7 +127,7 @@ static int readin_entity(bitfile &reader, const PARA_entity* e, vector<data> &co
 	}
 	// read the data from file
 	d.p = malloc((d.lenb >> 3) + 1);
-	reader.readb(d.p, d.lenb);
+	d.lenb = reader.readb(d.p, d.lenb);
 #if 0
 	dump_data(d);
 #endif
