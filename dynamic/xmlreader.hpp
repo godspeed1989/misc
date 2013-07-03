@@ -20,7 +20,7 @@ typedef struct range
 
 struct PARA_entity;
 // PARA's length, cound be a constant value or depend on another
-typedef union length
+typedef struct length
 {
 	int lb;
 	const PARA_entity* le;
