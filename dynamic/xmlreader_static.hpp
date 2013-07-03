@@ -57,7 +57,7 @@ static PARA_entity* get_ref_by_name(vector<PARA_entity*>* es, const xmlChar* nam
 	vector<PARA_entity*>::reverse_iterator rit;
 	for(rit = es->rbegin(); rit != es->rend(); ++rit)
 	{
-		if(xmlStrncasecmp((*rit)->name, name, MLEN))
+		if(xmlStrncasecmp((*rit)->name, name, MLEN) == 0)
 			break;
 	}
 	if(rit == es->rend())
