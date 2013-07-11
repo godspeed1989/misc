@@ -20,7 +20,8 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 	freader.summary();
-	freader.dump_all("dump.hex");
+	freader.dump_all_dat("dump.hex");
+	freader.dump_fmt_info("dump.txt");
 	return 0;
 }
 

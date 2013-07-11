@@ -62,7 +62,7 @@ typedef class xmlreader
 public:
 	file_format format_file;
 	int processFile(const char* file);
-	void printOut();
+	void printOut(FILE *fout);
 	void cleanup();
 	xmlreader()
 	{

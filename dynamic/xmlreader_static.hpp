@@ -69,57 +69,57 @@ static PARA_entity* get_ref_by_name(vector<PARA_entity*>* es, const xmlChar* nam
 }
 
 // output functions
-static void show_range(const range& rng)
+static void show_range(const range& rng, FILE* fout)
 {
 	if(rng.type == T_ANY)
-		printf("ANY");
+		fprintf(fout, "ANY");
 	else if(rng.type == T_VALUE)
-		printf("%ld", rng.low);
+		fprintf(fout, "%ld", rng.low);
 	else if(rng.type == T_RANGE)
-		printf("%ld~%ld", rng.low, rng.high);
+		fprintf(fout, "%ld~%ld", rng.low, rng.high);
 }
 
-static void show_length(const PARA_entity *entity)
+static void show_length(const PARA_entity *entity, FILE *fout)
 {
-	printf("length=");
+	fprintf(fout, "len=");
 	if(entity->attr.len.lb != -1)
-		printf("%db", entity->attr.len.lb);
+		fprintf(fout, "%db", entity->attr.len.lb);
 	else if(entity->attr.len.le)
-		printf("'$%s'", entity->attr.len.le->name);
+		fprintf(fout, "'$%s'", entity->attr.len.le->name);
 	else
 	{
-		printf("??unknown??");
+		fprintf(fout, "??unknown??");
 		throw;
 	}
 }
 
-static void show_PARA_entity(const PARA_entity *entity)
+static void show_PARA_entity(const PARA_entity *entity, FILE *fout)
 {
 	for(int i = 2; i < entity->depth; ++i)
-		printf("+---");
+		fprintf(fout, "+---");
 	if(entity->type == T_PARA)
 	{
-		printf("name=%s type=%d ", entity->name, entity->attr.type);
-		show_length(entity);
+		fprintf(fout, "%s %d ", entity->name, entity->attr.type);
+		show_length(entity, fout);
 		if(entity->depend)
-			printf(" depend='%s'", entity->depend->name);
+			fprintf(fout, " depend='%s'", entity->depend->name);
 	}
 	else if(entity->type == T_PARACHOICE)
 	{
-		printf("CHOICE on %s value=", entity->depend->name);
-		show_range(entity->attr.rng);
+		fprintf(fout, "CHOICE on %s value=", entity->depend->name);
+		show_range(entity->attr.rng, fout);
 	}
-	printf("\n");
+	fprintf(fout, "\n");
 }
 
-static void show_one_log_fmt(const log_format *log)
+static void show_one_log_fmt(const log_format *log, FILE* fout)
 {
-	printf("<LOG type=");
-	show_range(log->rng);
-	printf(">(%zu)\n", log->entities.size());
+	fprintf(fout, "<LOG type=");
+	show_range(log->rng, fout);
+	fprintf(fout, ">(%zu)\n", log->entities.size());
 	for(size_t i = 0; i < log->entities.size(); ++i)
 	{
-		show_PARA_entity(log->entities[i]);
+		show_PARA_entity(log->entities[i], fout);
 	}
 }
 

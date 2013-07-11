@@ -54,7 +54,7 @@
 		<PARA name="cpuID" type="4" length="4"/>
 		<PARA name="board" type="4" length="1"/>
 		<PARA name="RecordCnt" type="4" length="1"/>
-		<PARA name="lCode" type="3" length="2"/>
+		<PARA name="lCode" type="11" length="RecordCnt"/>
 		<!-- Depend and Value= , length is useless? -->
 		<PARA name="ulPara1" length="4" type="3" depend="ulCode" notuse="3">
 			<PARACHOICE value="12">
@@ -70,7 +70,7 @@
 		<PARA name="cpuID" type="4" length="4"/>
 		<PARA name="board" type="4" length="1"/>
 		<PARA name="RecordCnt" type="4" length="1"/>
-		<PARA name="lCode" type="4" length="2"/>
+		<PARA name="lCode" type="7" length="board"/>
 		<PARA name="Cascade" type="3" length="4" depend="lCode" notuse="3">
 			<PARACHOICE value="12">
 				<PARA name="cPara1" type="4" length="4" typeEx="codepara"/>
@@ -91,7 +91,7 @@
 						<PARA name="cm23" type="4" length="2"/>
 					</PARACHOICE>
 				</PARA>
-				<!--  -->
+				<!-- PARACHOICE with no "value=" -->
 				<PARA name="Cascade2" type="3" length="0">
 					<PARACHOICE>
 						<PARA name="ccm10" type="4" length="2"/>

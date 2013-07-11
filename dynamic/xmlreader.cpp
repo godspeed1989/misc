@@ -73,7 +73,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		// get "type=" attr to setup range
 		s = xmlTextReaderGetAttributeNo(reader, 0);
 		resolve_range(one_log_fmt->rng, s);
-		show_range(one_log_fmt->rng);
+		show_range(one_log_fmt->rng, stdout);
 		// output describe infomation if exist
 		s = xmlTextReaderGetAttributeNo(reader, 1);
 		if(s)
@@ -222,21 +222,21 @@ int xmlreader::processFile(const char* file)
 }
 
 // print out the XML file content
-void xmlreader::printOut()
+void xmlreader::printOut(FILE *fout)
 {
 	vector<PARA_entity*>::iterator it;
 	vector<log_format*>::iterator lit;
-	printf("======== Output read in to check ========\n");
-	printf("-----<File head info(%zu)>-----\n", format_file.file_head.size());
+	fprintf(fout, "======== Output read in to check ========\n");
+	fprintf(fout, "-----<File head info(%zu)>-----\n", format_file.file_head.size());
 	for(it = format_file.file_head.begin(); it != format_file.file_head.end(); ++it)
-		show_PARA_entity(*it);
-	printf("-----<Log head info(%zu)>-----\n", format_file.log_head.size());
+		show_PARA_entity(*it, fout);
+	fprintf(fout, "-----<Log head info(%zu)>-----\n", format_file.log_head.size());
 	for(it = format_file.log_head.begin(); it != format_file.log_head.end(); ++it)
-		show_PARA_entity(*it);
-	printf("-----<Log type info(%zu)>-----\n", format_file.log_fmt.size());
+		show_PARA_entity(*it, fout);
+	fprintf(fout, "-----<Log type info(%zu)>-----\n", format_file.log_fmt.size());
 	for(lit = format_file.log_fmt.begin(); lit != format_file.log_fmt.end(); ++lit)
-		show_one_log_fmt(*lit);
-	printf("========= Finish output read in =========\n");
+		show_one_log_fmt(*lit, fout);
+	fprintf(fout, "========= Finish output read in =========\n");
 }
 
 // clean up function

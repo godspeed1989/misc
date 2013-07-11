@@ -43,7 +43,8 @@ public:
 	int parse_fmt_file();
 	int parse_data_file();
 	void summary();
-	void dump_all(const char *file);
+	void dump_all_dat(const char *file);
+	void dump_fmt_info(const char *file);
 	~filereader()
 	{
 		xfreader.cleanup();

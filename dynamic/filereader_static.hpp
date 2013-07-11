@@ -56,6 +56,7 @@ static int get_lenB_by_name(const vector<data> &data_set, const xmlChar* name)
 	return  (lenb >> 3) + ((lenb & 7) != 0);
 }
 
+// get a data ref by its reference pointer
 static const data& get_data_by_ref(const vector<data> &data_set, const PARA_entity* ref)
 {
 	size_t i;
@@ -95,6 +96,11 @@ static int readin_entity(bitfile &reader, const PARA_entity* e, vector<data> &co
 {
 	data d;
 	d.ref = e;
+	// check the dependent parameter
+	if(e->depend && (get_value_by_ref(container, e->depend) == 0))
+	{
+		return 0;
+	}
 	if(reader.eof())
 	{
 		printf("read in para entity [%s] reached EOF\n", e->name);
