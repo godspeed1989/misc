@@ -115,7 +115,7 @@ int filereader::parse_data_file()
 		if(!_freader.eof())
 		{
 			log_data.left.ref = NULL;
-			log_data.left.lenb = _freader.capb - _freader.sizeb();
+			log_data.left.lenb = _freader.capb - _freader.ftellb();
 			log_data.left.p = malloc((log_data.left.lenb >> 3) + 1);
 			_freader.readb(log_data.left.p, log_data.left.lenb);
 		}
@@ -160,7 +160,7 @@ void filereader::dump_all_dat(const char *file)
 		dump_dats(ofile, data_file.logs[i].content);
 		ofile.writeb(data_file.logs[i].left.p, data_file.logs[i].left.lenb);
 	}
-	ofile.writeout();
+	ofile.write_out();
 	printf("dumped all read in to data file [%s]\n", file);
 	ofile.close();
 }
