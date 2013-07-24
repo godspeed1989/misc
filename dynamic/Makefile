@@ -16,7 +16,7 @@ lib$(TARGET).a: xmlreader.o filereader.o endian.o
 	$(AR) -cq $@ $+
 
 $(TARGET): main.o lib$(TARGET).a
-	$(CC) $< $(LIBS) -L. -l$(TARGET) -o $@
+	$(CC) $< -L. -l$(TARGET) $(LIBS) -o $@
 
 clean:
 	rm -rf *.o lib$(TARGET).a $(TARGET)

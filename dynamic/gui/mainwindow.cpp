@@ -81,9 +81,12 @@ void MainWindow::do_parse_file()
 	{
 		for(int j = 0; j < header_list.size(); ++j)
 		{
-			const struct data &d
-			 = get_data_by_name(freader.data_file.logs[i].content, \
-						(const xmlChar*)header_list[j].toStdString().c_str());
+			struct data d;
+			d = get_data_by_name(freader.data_file.logs[i].head, \
+				(const xmlChar*)header_list[j].toStdString().c_str());
+			if(d.p == NULL)
+				d = get_data_by_name(freader.data_file.logs[i].content, \
+					(const xmlChar*)header_list[j].toStdString().c_str());
 			QTableWidgetItem *item = new QTableWidgetItem();
 			item->setTextAlignment(Qt::AlignRight);
 			if(d.p == NULL)

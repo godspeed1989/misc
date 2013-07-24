@@ -86,7 +86,7 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 	else if(xmlStrncasecmp(node_name, PARA, MLEN) == 0)// <PARA name="" ...
 	{
 		entity.type = T_PARA;
-		assert(xmlTextReaderAttributeCount(reader) > 0);
+		assert(xmlTextReaderAttributeCount(reader) >= 3);
 		// parse attributes one by one
 		int count = xmlTextReaderAttributeCount(reader);
 		for(int i = 0; i < count; ++i) //TODO: get detailed format information
@@ -94,29 +94,37 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 			s = xmlTextReaderGetAttributeNo(reader, i);
 			if(i == 0)
 			{
-				entity.name = xmlStrdup(s); // name=""
+				// name=""
+				entity.name = xmlStrdup(s);
 			}
 			else if(i == 1)
 			{
-				entity.attr.type = atoi((const char*)s); // type=""
+				// length=""
+				if(xmlStrlen(s) == 0)
+					entity.attr.len.lb = 0;
+				else
+					entity.attr.len.lb = atoi((const char*)s);				
 			}
 			else if(i == 2)
-			{	
-				// case length=""
+			{
+				// type=""
+				entity.attr.type = atoi((const char*)s);
 				switch(entity.attr.type)
 				{
 					T_BYTE_CASE:
-						entity.attr.len.lb = atoi((const char*)s) << 3;
+						entity.attr.len.lb <<= 3;
 						break;
 					T_BIT_CASE:
-						entity.attr.len.lb = atoi((const char*)s);
 						break;
 					T_BYTE_REF_CASE: T_BIT_REF_CASE:
-						entity.attr.len.lb = -1;
+						s = xmlTextReaderGetAttributeNo(reader, 1);
 						entity.attr.len.le = get_ref_by_name(processing, s);
 						break;
+					T_NULL_CASE:
+						assert(entity.attr.len.lb == 0);
+						break;
 					default:
-						printf("unknow attr type %d of %s\n", entity.attr.type, entity.name);
+						printf("unknown attr type %d of %s\n", entity.attr.type, entity.name);
 						throw;
 				}
 			}
@@ -131,39 +139,34 @@ void xmlreader::processNode(xmlTextReaderPtr reader)
 		}
 		processing->push_back(dup_PARA_entity(&entity));
 	}
-	else if(xmlStrncasecmp(node_name, PARACHOICE, MLEN) == 0)// <PARACHOCE value="">
+	else if(xmlStrncasecmp(node_name, PARACHOICE, MLEN) == 0)// <PARACHOCE ...
 	{
 		entity.type = T_PARACHOICE;
+		// backward find first PARA with depth less 1
+		vector<PARA_entity*>::reverse_iterator rit;
+		for(rit=processing->rbegin(); rit!=processing->rend(); ++rit)
+		{
+			if((*rit)->depth == entity.depth-1)
+			{
+				entity.depend = *rit;
+				assert(entity.depend->type == T_PARA);
+				break;
+			}
+		}
+		if(rit == processing->rend())
+		{
+			printf("can't find PARACHOICE dependency\n");
+			throw;
+		}
+		// does exist value="a~b" attr?
 		if(xmlTextReaderAttributeCount(reader) > 0)
 		{
-			// value= a range
 			s = xmlTextReaderGetAttributeNo(reader, 0);
 			resolve_range(entity.attr.rng, s);
-			// backward find first PARA with depth less 1
-			vector<PARA_entity*>::reverse_iterator rit;
-			for(rit=processing->rbegin(); rit!=processing->rend(); ++rit)
-			{
-				if((*rit)->depth == entity.depth-1)
-				{
-					entity.depend = *rit;
-					break;
-				}
-			}
-			if(rit == processing->rend())
-			{
-				printf("can't find PARACHOICE value=%s dependency\n", s);
-				throw;
-			}
-			processing->push_back(dup_PARA_entity(&entity));
 		}
-		else // no attribute
-		{
-			// TODO make sure : when a PARACHOICE *without* "value="
-			// the one PARA before it is useless
-			free_PARA_entity(processing->back());
-			processing->pop_back();
-			return;
-		}
+		else
+			entity.attr.rng.type = T_ANY;
+		processing->push_back(dup_PARA_entity(&entity));
 	}
 	else// <UNKNOWN ...
 	{

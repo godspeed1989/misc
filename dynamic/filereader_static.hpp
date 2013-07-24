@@ -67,7 +67,7 @@ static const data& get_data_by_ref(const vector<data> &data_set, const PARA_enti
 	}
 	if(i == data_set.size())
 	{
-		printf("error: can't find value refer to [%s]\n", ref->name);
+		printf("error: can't find data [%s]\n", ref->name);
 		throw;
 	}
 	return data_set[i];
@@ -101,11 +101,6 @@ static int readin_entity(bitfile &reader, const PARA_entity* e, vector<data> &co
 	{
 		return 0;
 	}
-	if(reader.eof())
-	{
-		printf("read in para entity [%s] reached EOF\n", e->name);
-		return -1;
-	}
 	// calculate the length by type
 	switch(e->attr.type)
 	{
@@ -114,13 +109,15 @@ static int readin_entity(bitfile &reader, const PARA_entity* e, vector<data> &co
 			d.lenb = e->attr.len.lb;
 			break;
 		T_BIT_REF_CASE:
-			//len is based on other in BIT
+			//len is based on other's value in BIT
 			d.lenb = get_value_by_ref(container, e->attr.len.le);
 			break;
 		T_BYTE_REF_CASE:
-			//len is based on other in BYTE
+			//len is based on other's value in BYTE
 			d.lenb = get_value_by_ref(container, e->attr.len.le) << 3;
 			break;
+		T_NULL_CASE:
+			return 0;
 		default:
 			printf("unkonw attr type %d of %s\n", e->attr.type, e->name);
 			return -1;
@@ -128,10 +125,14 @@ static int readin_entity(bitfile &reader, const PARA_entity* e, vector<data> &co
 	if(d.lenb == 0)
 	{
 		printf("warning: the length of %s is zero\n", e->name);
-		d.p = NULL;
 		return 0;
 	}
 	// read the data from file
+	if(reader.eof())
+	{
+		printf("read in para entity [%s] reached EOF\n", e->name);
+		return -1;
+	}
 	d.p = malloc((d.lenb >> 3) + 1);
 	d.lenb = reader.readb(d.p, d.lenb);
 #if 0
@@ -156,6 +157,10 @@ static int readin_entities(bitfile &reader, const vector<PARA_entity*> es, vecto
 		}
 		else if(es[i]->type == T_PARACHOICE)
 		{
+			if(es[i]->attr.rng.type == T_ANY)
+			{
+				continue;
+			}
 			long val = get_value_by_ref(container, es[i]->depend);
 			// match the choice range, continue to read
 			if(range_equal(es[i]->attr.rng, val))
@@ -164,16 +169,17 @@ static int readin_entities(bitfile &reader, const vector<PARA_entity*> es, vecto
 			}
 			else
 			{
-				// skip the adjacent entities with the higher depth
-				size_t cur = i;
-				++i;
-				while(i < es.size() && es[i]->depth > es[cur]->depth)
-					++i;
+				// skip the following entities with the higher depth
+				size_t a = 1;
+				while(i+a < es.size() && es[i+a]->depth > es[i]->depth)
+				{
+					++a;
+				}
+				i += (a-1);
 			}
 		}
 		else
 		{
-			// should never reached here
 			throw;
 		}
 	}

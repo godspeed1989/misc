@@ -19,11 +19,11 @@ typedef struct range
 }range;
 
 struct PARA_entity;
-// PARA's length, cound be a constant value or depend on another
-typedef struct length
+// PARA's length, be a constant value or depend on other's value
+typedef union length
 {
-	int lb;
-	const PARA_entity* le;
+	int lb;                 // length in bit
+	const PARA_entity* le;  // dependent entity
 }length;
 
 // PARA type
@@ -37,9 +37,9 @@ typedef struct PARA_entity
 	const PARA_entity * depend;  // used by "PARACHOICE" or "depend="
 	struct attr
 	{
-		int type;        // type= in attr
-		length len;
-		range rng;       // only in para choice "value=1~3"
+		int type;        // type="" attr
+		length len;      // length="" attr
+		range rng;       // "value=a~b" attr in PARACHOICE
 	}attr;
 }PARA_entity;
 
@@ -79,11 +79,12 @@ private:
 	void processNode(xmlTextReaderPtr reader);
 }xmlreader;
 
-// the "length=" attribute's type
+// the "type=" attribute cases
 #define T_BIT_CASE          case 3
-#define T_BYTE_CASE         case 0 : case 4 : case 16
+#define T_BYTE_CASE         case 0 : case 4
 #define T_BIT_REF_CASE      case 7
 #define T_BYTE_REF_CASE     case 11
+#define T_NULL_CASE         case 16
 
 #endif
 

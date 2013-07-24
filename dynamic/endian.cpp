@@ -1,4 +1,4 @@
-#include "endian.h"
+#include "endian.hpp"
 #include <stdio.h>
 
 void EndianConvert(void *_value, int nbytes)

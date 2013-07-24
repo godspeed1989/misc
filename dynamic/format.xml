@@ -10,94 +10,95 @@
           xsi:noNamespaceSchemaLocation="E:\we.xsd">
 
 <FILEHEAD>
-	<PARA name="Filehead" type="4" length="356"/>
+	<PARA name="Filehead" length="356" type="4"/>
 </FILEHEAD>
 
 <LOGHEAD>
-	<PARA name="Verifyflag" type="4" length="2"/>
-	<PARA name="Logtype" type="4" length="2"/>
-	<PARA name="Loglength" type="4" length="4"/>
+	<PARA name="Verifyflag" length="2" type="4"/>
+	<PARA name="Logtype" length="2" type="4"/>
+	<PARA name="Loglength" length="4" type="4"/>
 </LOGHEAD>
 
 <LOGTYPE>
 	<!-- log type 16 -->
 	<LOG type="16" disp="Normal Log">
-		<PARA name="cpuID" type="4" length="4"/>
-		<PARA name="board" type="4" length="1"/>
-		<PARA name="RecordCnt" type="4" length="1"/>
+		<PARA name="cpuID" length="4" type="4"/>
+		<PARA name="board" length="1" type="4"/>
+		<PARA name="RecordCnt" length="1" type="4"/>
+		<PARA name="lCode" length="RecordCnt" type="11"/>
 		<!-- empty -->
-		<PARA name="ServiceSetup" type="16" length="" tag="16" notuse="2">
+		<PARA name="ServiceSetup" length="" type="16" tag="16" notuse="2">
 			<PARACHOICE>
-				<PARA name="ss1" type="3" length="2"/>
-				<PARA name="ss2" type="4" length="2"/>
-				<PARA name="ss3" type="3" length="2"/>
+				<PARA name="ss1" length="2" type="3"/>
+				<PARA name="ss2" length="2" type="4"/>
+				<PARA name="ss3" length="2" type="3"/>
 			</PARACHOICE>
 		</PARA>
 		<!-- Depend and Value= -->
-		<PARA name="MobileIdentity" type="3" length="1" typeEx="hex" notuse="2"/>
-		<PARA name="MobileIdentityUnion" type="3" length="3" depend="MobileIdentity">
+		<PARA name="MobileIdentity" length="1" type="3" typeEx="hex" notuse="2"/>
+		<PARA name="MobileIdentityUnion" length="3" type="3" depend="MobileIdentity">
 			<PARACHOICE value="16">
-				<PARA name="mm11" type="4" length="2"/>
-				<PARA name="mm12" type="3" length="2"/>
-				<PARA name="mm13" type="4" length="2"/>
+				<PARA name="mm11" length="2" type="4"/>
+				<PARA name="mm12" length="2" type="3"/>
+				<PARA name="mm13" length="2" type="4"/>
 			</PARACHOICE>
 			<PARACHOICE value="18">
-				<PARA name="mm21" type="4" length="2"/>
-				<PARA name="mm22" type="4" length="2"/>
-				<PARA name="mm23" type="4" length="2"/>
+				<PARA name="mm21" length="2" type="4"/>
+				<PARA name="mm22" length="2" type="4"/>
+				<PARA name="mm23" length="2" type="4"/>
 			</PARACHOICE>
 		</PARA>
 		
 	</LOG>
 	<!-- log type 18 -->
 	<LOG type="18" disp="SPU Single User Log">
-		<PARA name="cpuID" type="4" length="4"/>
-		<PARA name="board" type="4" length="1"/>
-		<PARA name="RecordCnt" type="4" length="1"/>
-		<PARA name="lCode" type="11" length="RecordCnt"/>
+		<PARA name="cpuID" length="4" type="4"/>
+		<PARA name="board" length="1" type="4"/>
+		<PARA name="RecordCnt" length="1" type="4"/>
+		<PARA name="lCode" length="RecordCnt" type="11"/>
 		<!-- Depend and Value= , length is useless? -->
 		<PARA name="ulPara1" length="4" type="3" depend="ulCode" notuse="3">
 			<PARACHOICE value="12">
-				<PARA name="cPara1" type="4" length="4" typeEx="codepara"/>
+				<PARA name="cPara1" length="4" type="4" typeEx="codepara"/>
 			</PARACHOICE>
 			<PARACHOICE value="-1078272~1081343">
-				<PARA name="ucCondNum" type="4" length="4" typeEx="decimal"/>
+				<PARA name="ucCondNum" length="4" type="4" typeEx="decimal"/>
 			</PARACHOICE>
 		</PARA>
 	</LOG>
 	<!-- log type others -->
 	<LOG type="" disp="others">
-		<PARA name="cpuID" type="4" length="4"/>
-		<PARA name="board" type="4" length="1"/>
-		<PARA name="RecordCnt" type="4" length="1"/>
-		<PARA name="lCode" type="7" length="board"/>
-		<PARA name="Cascade" type="3" length="4" depend="lCode" notuse="3">
+		<PARA name="cpuID" length="4" type="4"/>
+		<PARA name="board" length="1" type="4"/>
+		<PARA name="RecordCnt" length="1" type="4"/>
+		<PARA name="lCode" length="board" type="7"/>
+		<PARA name="Cascade" length="4" type="3" depend="lCode" notuse="3">
 			<PARACHOICE value="12">
-				<PARA name="cPara1" type="4" length="4" typeEx="codepara"/>
+				<PARA name="cPara1" length="4" type="4" typeEx="codepara"/>
 			</PARACHOICE>
 			<PARACHOICE value="1078272~1081343">
-				<PARA name="ucCondNum" type="4" length="4" typeEx="decimal"/>
+				<PARA name="ucCondNum" length="4" type="4" typeEx="decimal"/>
 			</PARACHOICE>
 			<PARACHOICE value="">
-				<PARA name="Cascade1" type="3" length="1">
+				<PARA name="Cascade1" length="1" type="3">
 					<PARACHOICE value="16">
-						<PARA name="cm11" type="4" length="2"/>
-						<PARA name="cm12" type="4" length="2"/>
-						<PARA name="cm13" type="4" length="2"/>
+						<PARA name="cm11" length="2" type="4"/>
+						<PARA name="cm12" length="2" type="4"/>
+						<PARA name="cm13" length="2" type="4"/>
 					</PARACHOICE>
 					<PARACHOICE value="18">
-						<PARA name="cm21" type="4" length="2"/>
-						<PARA name="cm22" type="4" length="2"/>
-						<PARA name="cm23" type="4" length="2"/>
+						<PARA name="cm21" length="2" type="4"/>
+						<PARA name="cm22" length="2" type="4"/>
+						<PARA name="cm23" length="2" type="4"/>
 					</PARACHOICE>
 				</PARA>
 				<!-- PARACHOICE with no "value=" -->
-				<PARA name="Cascade2" type="3" length="0">
+				<PARA name="Cascade2" length="0" type="3">
 					<PARACHOICE>
-						<PARA name="ccm10" type="4" length="2"/>
-						<PARA name="ccm11" type="4" length="2"/>
-						<PARA name="ccm12" type="4" length="2"/>
-						<PARA name="ccm13" type="4" length="2"/>
+						<PARA name="ccm10" length="2" type="4"/>
+						<PARA name="ccm11" length="2" type="4"/>
+						<PARA name="ccm12" length="2" type="4"/>
+						<PARA name="ccm13" length="2" type="4"/>
 					</PARACHOICE>
 				</PARA>
 			</PARACHOICE>
