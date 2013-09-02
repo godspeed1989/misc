@@ -17,7 +17,7 @@ void test()
 	u32 final_char_pos;
 	final_char_pos = bw_encode(data, length, encoded);
 	bw_decode(encoded, length, final_char_pos, decoded);
-	if(bw_compare(decoded, data, length))
+	if(memcmp(decoded, data, length))
 		cout << "error\n";
 }
 
@@ -34,3 +34,4 @@ int main()
 	}
 	return 0;
 }
+

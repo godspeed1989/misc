@@ -1,5 +1,5 @@
 CC = g++
-CPPFLAGS = -Wall
+CPPFLAGS = -Wall -g
 
 all: test
 

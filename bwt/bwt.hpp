@@ -8,7 +8,5 @@ u32 bw_encode(u8* data, const u32 len, u8* result);
 
 void bw_decode(u8* data, const u32 len, u32 final_char_pos, u8* result);
 
-int bw_compare(const u8* a, const u8* b, u32 l);
-
 #endif
 

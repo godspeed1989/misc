@@ -1,47 +1,39 @@
 
 #include "bwt.hpp"
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <map>
 #include <iostream>
+#include <algorithm>
 
-static void sort_dat(u8* dat, const u32 num)
+struct memscmp : public std::binary_function<u8*, u8*, bool>
 {
-	u32 i, j;
-	for(i=0;i<num;i++)
-		for(j=i+1;j<num;j++)
-			if(dat[i] > dat[j])
-			{
-				u8 ddd = dat[i];
-				dat[i] = dat[j];
-				dat[j] = ddd;
-			}
-}
+	u32 _len;
+	memscmp(u32 len) : _len(len) {}
+	bool operator ()( const u8 *a, const u8 *b ) const
+	{
+		printf("%p - %p -- %d\n", a, b, _len);
+		return memcmp( a, b, _len ); 
+	}
+};
 
 static void sort_dats(u8** dats, const u32 len, const u32 num)
 {
+	memscmp cmp(len);
+#if 0
+	std::sort(dats, dats + num, cmp); //TODO: no working now
+#else
 	u32 i, j;
 	for(i=0;i<num;i++)
 		for(j=i+1;j<num;j++)
-			if(bw_compare(dats[i], dats[j], len) < 0)
+			if(memcmp(dats[i], dats[j], len) > 0)
 			{
 				u8* dat = dats[i];
 				dats[i] = dats[j];
 				dats[j] = dat;
 			}
-}
-
-int bw_compare(const u8* a, const u8* b, u32 l)
-{
-	u32 i;
-	for(i = 0; i < l; ++i)
-	{
-		if(a[i] < b[i])
-			return 1;
-		if(a[i] > b[i])
-			return -1;
-	}
-	return 0;
+#endif
 }
 
 u32 bw_encode(u8* data, const u32 len, u8* result)
@@ -63,7 +55,7 @@ u32 bw_encode(u8* data, const u32 len, u8* result)
 	for (i = 0; i < len; ++i)
 	{
 		result[i] = block[i][len - 1];
-		if(bw_compare(block[i], data, len)==0)
+		if(memcmp(block[i], data, len)==0)
 			final_char_pos = i;
 	}
 
@@ -83,7 +75,7 @@ void bw_decode(u8* data, const u32 len, u32 final_char_pos, u8* result)
 
 	F = (u8*)malloc(len*sizeof(u8));
 	memcpy(F, data, len);
-	sort_dat(F, len);
+	std::sort(F, F + len);
 
 	// map each char with a unique number
 	std::map<u8, u32> C;
