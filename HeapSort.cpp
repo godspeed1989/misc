@@ -1,5 +1,16 @@
+#include <iostream>
+#include <cstdlib>
 
 typedef unsigned int u32;
+
+template <typename Type>
+void swap2(Type &a, Type &b)
+{
+	Type t;
+	t = a;
+	a = b;
+	b = t;
+}
 
 template <typename Type>
 void heapify(Type *z, u32 n, u32 k)
@@ -15,8 +26,8 @@ void heapify(Type *z, u32 n, u32 k)
 
 	if ( m != k ) // need to swap
 	{
-		swap2(z[k], z[m]);
-		heapify(z, n, m);
+		swap2<Type>(z[k], z[m]);
+		heapify<Type>(z, n, m);
 	}
 }
 
@@ -29,7 +40,7 @@ void build_heap(Type *x, u32 n)
 	u32 j = (n>>1); // max index such that node has at least one child
 	while ( j > 0 )
 	{
-		heapify(z, n, j);
+		heapify<Type>(z, n, j);
 		--j;
 	}
 }
@@ -37,13 +48,32 @@ void build_heap(Type *x, u32 n)
 template <typename Type>
 void heap_sort(Type *x, u32 n)
 {
-	build_heap(x, n);
+	build_heap<Type>(x, n);
 	Type *p = x - 1;
 	for (u32 k=n; k>1; --k)
 	{
-		swap2(p[1], p[k]); // move largest to end of array
+		swap2<Type>(p[1], p[k]); // move largest to end of array
 		--n; // remaining array has one element less
-		heapify(p, n, 1); // restore heap-property
+		heapify<Type>(p, n, 1); // restore heap-property
 	}
+}
+
+#define NUM 1024
+
+int main()
+{
+	u32 a[NUM];
+	for(;;)
+	{
+		for(u32 i = 1; i < NUM; ++i)
+			a[i] = (u32)rand();
+		heap_sort<u32>(a, NUM);
+		for(u32 i = 1; i < NUM; ++i)
+		{
+			if(a[i] < a[i-1])
+				throw;
+		}
+	}
+	return 0;
 }
 
