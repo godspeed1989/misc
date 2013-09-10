@@ -4,66 +4,72 @@
 #include <string.h>
 #include <stdlib.h>
 #include <map>
+#include <vector>
 #include <iostream>
 #include <algorithm>
 
-struct memscmp : public std::binary_function<u8*, u8*, bool>
+typedef struct block_elem
 {
-	u32 _len;
-	memscmp(u32 len) : _len(len) {}
-	bool operator ()( const u8 *a, const u8 *b ) const
+	const u8 * ptr;
+	u32 len, idx;
+	void setup(const u8 *p, const u32 l, const u32 i)
 	{
-		printf("%p - %p -- %d\n", a, b, _len);
-		return memcmp( a, b, _len ); 
+		ptr = p;
+		len = l;
+		idx = i;
+	}
+	u8 at(u32 i) const
+	{
+		return ptr[(idx + i) % len];
+	}
+}block_elem;
+
+struct elemcmp : public std::binary_function<block_elem*, block_elem*, bool>
+{
+	bool operator ()( const block_elem *a, const block_elem *b ) const
+	{
+		u32 i;
+		if(a->len != b->len)
+			throw;
+		for(i = 0; i < a->len; ++i)
+		{
+			if(a->at(i) < b->at(i))
+				return true;
+			else if(a->at(i) > b->at(i))
+				return false;
+		}
+		return false;
 	}
 };
-
-static void sort_dats(u8** dats, const u32 len, const u32 num)
-{
-	memscmp cmp(len);
-#if 0
-	std::sort(dats, dats + num, cmp); //TODO: no working now
-#else
-	u32 i, j;
-	for(i=0;i<num;i++)
-		for(j=i+1;j<num;j++)
-			if(memcmp(dats[i], dats[j], len) > 0)
-			{
-				u8* dat = dats[i];
-				dats[i] = dats[j];
-				dats[j] = dat;
-			}
-#endif
-}
 
 u32 bw_encode(u8* data, const u32 len, u8* result)
 {
 	u32 i, final_char_pos;
-	u8** block;
 
 	// construct suffix array
-	block = (u8**)malloc(len*sizeof(u8*));
+	block_elem *be;
+	std::vector<block_elem*> block_elems;
 	for (i = 0; i < len; ++i)
 	{
-		block[i] = (u8*)malloc(len*sizeof(u8));
-		memcpy(block[i], data + i, len - i);
-		memcpy(block[i] + (len-i), data, i);
+		be = (block_elem*)malloc(sizeof(block_elem));
+		be->setup(data, len, i);
+		block_elems.push_back(be);
 	}
 
-	sort_dats(block, len, len);
+	elemcmp cmp;
+	std::sort(block_elems.begin(), block_elems.end(), cmp);
 
 	for (i = 0; i < len; ++i)
 	{
-		result[i] = block[i][len - 1];
-		if(memcmp(block[i], data, len)==0)
+		result[i] = block_elems[i]->at(len - 1);
+		if(block_elems[i]->idx == 0)
 			final_char_pos = i;
 	}
 
 	for (i = 0; i < len; ++i)
 	{
-		free(block[i]);
+		free(block_elems[i]);
 	}
-	free(block);
 	return final_char_pos;
 }
 
@@ -73,7 +79,7 @@ void bw_decode(u8* data, const u32 len, u32 final_char_pos, u8* result)
 	u8 *F;
 	u32 *LF;
 
-	F = (u8*)malloc(len*sizeof(u8));
+	F = (u8*)malloc(len * sizeof(u8));
 	memcpy(F, data, len);
 	std::sort(F, F + len);
 
