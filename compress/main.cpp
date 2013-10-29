@@ -108,19 +108,22 @@ int main(int argc, const char* argv[])
 	fout.open(argv[3], WRITE);
 
 	init();
+	u8 *p;
 	u32 i, size;
 	if(state == ENCODE)
 	{
+		p = (u8*)&x2;
 		size = fin.capb;
 		size >>= 3;
 		fout.writeB(&size, 4);
 		while(!fin.eof())
 			code(&fin, &fout);
-		fout.writeB(&x2, 4); // why upper bound
+		for(i=0; i<4; i++)
+			fout.writeB(p+3-i, 4); // why upper bound
 	}
 	else
 	{
-		u8 *p = (u8*)&x;
+		p = (u8*)&x;
 		fin.readB(&size, 4);
 		for(i=0; i<4; i++)
 			fin.readB(p+3-i, 1);
