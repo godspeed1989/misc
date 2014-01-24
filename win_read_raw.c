@@ -7,6 +7,7 @@
 #define BytesPerSector    512
 
 char Drive[] = "\\\\.\\PHYSICALDRIVE0";
+//char Drive[] = "\\\\.\\C:";
 BOOL ReadPhysicalSector(LONGLONG SectorStart, ULONG SectorCount, PVOID p)
 {
 	ULONG nBytes;
