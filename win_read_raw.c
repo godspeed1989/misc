@@ -23,7 +23,7 @@ BOOL ReadPhysicalSector(LONGLONG SectorStart, ULONG SectorCount, PVOID p)
 		0, 0
 	);
 
-	if(hDeviceHandle)
+	if(hDeviceHandle != INVALID_HANDLE_VALUE)
 	{
 		LARGE_INTEGER pointer;
 		pointer.QuadPart = SectorStart;
