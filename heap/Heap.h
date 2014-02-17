@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 #include <stdlib.h>
 #define TRUE	1
 #define FALSE	0
@@ -34,6 +35,8 @@ typedef struct _Heap
 BOOLEAN InitHeap (PHeap Heap, ULONG Size);
 
 VOID DestroyHeap (PHeap Heap);
+
+VOID HeapMake (PHeap);
 
 BOOLEAN HeapInsert (PHeap Heap, HEAP_DAT_T *pData);
 

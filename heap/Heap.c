@@ -6,8 +6,9 @@
 
 #define TEST
 
-#define _HMALLOC(n)	malloc(n)
-#define _HFREE(p)	free(p)
+#define _HMALLOC(n)			malloc(n)
+#define _HFREE(p)			free(p)
+#define _HZEROMEM(p,len)	memset(p,0,len)
 
 BOOLEAN
 InitHeap(PHeap Heap, ULONG Size)
@@ -15,6 +16,7 @@ InitHeap(PHeap Heap, ULONG Size)
 	Heap->Used = 0;
 	Heap->Size = Size;
 	Heap->Entries = (PHeapEntry*)_HMALLOC(Size*sizeof(PHeapEntry));
+	_HZEROMEM(Heap->Entries, Size*sizeof(PHeapEntry));
 	return (Heap->Entries != NULL);
 }
 
@@ -60,7 +62,7 @@ HeapSiftDown(PHeap Heap, ULONG HeapIndex)
 	{
 		ULONG Index = Left(HeapIndex);
 		if (Right(HeapIndex) < Heap->Used &&
-			!HEAP_ENTRY_COMPARE(h, Left(HeapIndex), Right(HeapIndex)))
+			HEAP_ENTRY_COMPARE(h, Left(HeapIndex), Right(HeapIndex)))
 			Index = Right(HeapIndex);
 		if (HEAP_ENTRY_COMPARE(h, HeapIndex, Index))
 		{
@@ -106,23 +108,35 @@ HeapDelete(PHeap Heap, ULONG HeapIndex)
 	HEAP_ENTRY_SWAP(h, HeapIndex, Heap->Used);
 
 	if (HEAP_ENTRY_COMPARE(h, HeapIndex, Heap->Used))
-		HeapSiftUp(Heap, HeapIndex);
-	else
 		HeapSiftDown(Heap, HeapIndex);
+	else
+		HeapSiftUp(Heap, HeapIndex);
 
 	_HFREE(Heap->Entries[Heap->Used]);
 	Heap->Entries[Heap->Used] = NULL;
+}
+
+// Heapify
+VOID
+HeapMake(PHeap Heap)
+{
+	ULONG i;
+	if (Heap->Used < 2)
+		return;
+	i = Parent(Heap->Used - 1);
+	while (i != 0)
+	{
+		HeapSiftDown(Heap, i);
+		i--;
+	}
+	HeapSiftDown(Heap, 0);
 }
 
 VOID
 HeapIncreaseValue(PHeap Heap, ULONG HeapIndex, ULONG Inc)
 {
 	Heap->Entries[HeapIndex]->Value += Inc;
-#ifdef MIN_HEAP
-	HeapSiftDown(Heap, HeapIndex);
-#else
-	HeapSiftUp(Heap, HeapIndex);
-#endif
+	HeapMake(Heap);
 }
 
 VOID
@@ -132,11 +146,7 @@ HeapDecreaseValue(PHeap Heap, ULONG HeapIndex, ULONG Dec)
 		Heap->Entries[HeapIndex]->Value -= Dec;
 	else
 		Heap->Entries[HeapIndex]->Value = 0;
-#ifdef MIN_HEAP
-	HeapSiftUp(Heap, HeapIndex);
-#else
-	HeapSiftDown(Heap, HeapIndex);
-#endif
+	HeapMake(Heap);
 }
 
 HEAP_DAT_T*
@@ -151,7 +161,32 @@ GetAndRemoveHeapTop(PHeap Heap)
 }
 
 #ifdef TEST
-#define HEAP_SIZE 64
+#define HEAP_SIZE 40960
+#define fill()										\
+	i = 0;											\
+	while (TRUE == HeapInsert(&Heap, HeapData+i))	\
+		i++;
+
+#define empty()										\
+	while (NULL != GetAndRemoveHeapTop(&Heap));
+
+#define modify()											\
+	for (i=0; i<HEAP_SIZE*2; i++)							\
+	{														\
+		HeapIncreaseValue(&Heap, rand()%HEAP_SIZE, rand());	\
+		HeapDecreaseValue(&Heap, rand()%HEAP_SIZE, rand());	\
+	}
+
+#define verify()														\
+	for (i=0; i<Heap.Used; i++)											\
+	{																	\
+		if (HeapData+i != Heap.Entries[HeapData[i].HeapIndex]->pData)	\
+			printf("%p - %p Ptr Error\n", HeapData+i,					\
+					Heap.Entries[HeapData[i].HeapIndex]->pData);		\
+		if (i!=0 && HEAP_ENTRY_COMPARE(Heap.Entries, Parent(i), i))		\
+			printf("%ld - %ld Order Error\n", Parent(i), i);			\
+	}
+
 int main()
 {
 	ULONG i;
@@ -166,26 +201,26 @@ int main()
 		return 1;
 	}
 
-	i = 0;
-	while (TRUE == HeapInsert(&Heap, HeapData+i))
-		i++;
+	fill();
+	modify();
+	verify();
+	empty();
 
-	/*for (i=0; i<HEAP_SIZE*2; i++)
-	{
-		HeapIncreaseValue(&Heap, rand()%HEAP_SIZE, rand());
-		HeapDecreaseValue(&Heap, rand()%HEAP_SIZE, rand());
-	}*/
-
-	for (i=0; i<HEAP_SIZE; i++)
-	{
-		if (HeapData+i != Heap.Entries[HeapData[i].HeapIndex]->pData)
-			printf("%p - %p Ptr Error\n", HeapData+i, Heap.Entries[HeapData[i].HeapIndex]->pData);
-		if (i!=0 && HEAP_ENTRY_COMPARE(Heap.Entries, Parent(i), i))
-			printf("%ld - %ld Order Error\n", Parent(i), i);
-	}
-
-	for (i=0; i<HEAP_SIZE; i++)
+	fill();
+	for (i=HEAP_SIZE/2; i<HEAP_SIZE; i++)
 		HeapDelete(&Heap, HeapData[i].HeapIndex);
+	for (i=HEAP_SIZE/2; i<HEAP_SIZE; i++)
+		HeapInsert(&Heap, HeapData+i);
+	for (i=0; i<Heap.Used; i++)											
+	{																	
+		if (HeapData+i != Heap.Entries[HeapData[i].HeapIndex]->pData)	
+			printf("%p - %p Ptr Error\n", HeapData+i,					
+					Heap.Entries[HeapData[i].HeapIndex]->pData);		
+		if (i!=0 && HEAP_ENTRY_COMPARE(Heap.Entries, Parent(i), i))		
+			printf("%ld - %ld Order Error\n", Parent(i), i);			
+	}
+	empty();
+
 	DestroyHeap(&Heap);
 	return 0;
 }
