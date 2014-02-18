@@ -133,6 +133,24 @@ HeapMake(PHeap Heap)
 }
 
 VOID
+HeapSort(PHeap Heap)
+{
+	ULONG i, Used;
+	PHeapEntry* h = Heap->Entries;
+	if (Heap->Used < 2)
+		return;
+	Used = Heap->Used;
+	HeapMake(Heap);
+	for (i=Used-1; i>0; i--)
+	{
+		HEAP_ENTRY_SWAP(h, 0, i);
+		Heap->Used--;
+		HeapSiftDown(Heap, 0);
+	}
+	Heap->Used = Used;
+}
+
+VOID
 HeapIncreaseValue(PHeap Heap, ULONG HeapIndex, ULONG Inc)
 {
 	Heap->Entries[HeapIndex]->Value += Inc;
@@ -187,6 +205,8 @@ GetAndRemoveHeapTop(PHeap Heap)
 			printf("%ld - %ld Order Error\n", Parent(i), i);			\
 	}
 
+#define sort() HeapSort(&Heap)
+
 int main()
 {
 	ULONG i;
@@ -211,13 +231,15 @@ int main()
 		HeapDelete(&Heap, HeapData[i].HeapIndex);
 	for (i=HEAP_SIZE/2; i<HEAP_SIZE; i++)
 		HeapInsert(&Heap, HeapData+i);
-	for (i=0; i<Heap.Used; i++)											
-	{																	
-		if (HeapData+i != Heap.Entries[HeapData[i].HeapIndex]->pData)	
-			printf("%p - %p Ptr Error\n", HeapData+i,					
-					Heap.Entries[HeapData[i].HeapIndex]->pData);		
-		if (i!=0 && HEAP_ENTRY_COMPARE(Heap.Entries, Parent(i), i))		
-			printf("%ld - %ld Order Error\n", Parent(i), i);			
+	verify();
+	empty();
+
+	fill();
+	sort();
+	for (i=1; i<Heap.Used; i++)
+	{
+		if (HEAP_ENTRY_COMPARE(Heap.Entries, i, i-1))
+			printf("error\n");
 	}
 	empty();
 

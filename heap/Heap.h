@@ -38,6 +38,8 @@ VOID DestroyHeap (PHeap Heap);
 
 VOID HeapMake (PHeap);
 
+VOID HeapSort (PHeap);
+
 BOOLEAN HeapInsert (PHeap Heap, HEAP_DAT_T *pData);
 
 VOID HeapDelete (PHeap Heap, ULONG HeapIndex);
