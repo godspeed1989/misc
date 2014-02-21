@@ -16,8 +16,10 @@ InitHeap(PHeap Heap, ULONG Size)
 	Heap->Used = 0;
 	Heap->Size = Size;
 	Heap->Entries = (PHeapEntry*)_HMALLOC(Size*sizeof(PHeapEntry));
+	if (Heap->Entries == NULL)
+		return FALSE;
 	_HZEROMEM(Heap->Entries, Size*sizeof(PHeapEntry));
-	return (Heap->Entries != NULL);
+	return TRUE;
 }
 
 VOID
@@ -154,17 +156,27 @@ VOID
 HeapIncreaseValue(PHeap Heap, ULONG HeapIndex, ULONG Inc)
 {
 	Heap->Entries[HeapIndex]->Value += Inc;
-	HeapMake(Heap);
+	#ifdef MIN_HEAP
+		HeapSiftDown(Heap, HeapIndex);
+	#else
+		HeapSiftUp(Heap, HeapIndex);
+	#endif
 }
 
 VOID
 HeapDecreaseValue(PHeap Heap, ULONG HeapIndex, ULONG Dec)
 {
+	if (Heap->Entries[HeapIndex]->Value == 0 || Dec == 0)
+		return;
 	if (Heap->Entries[HeapIndex]->Value > Dec)
 		Heap->Entries[HeapIndex]->Value -= Dec;
 	else
 		Heap->Entries[HeapIndex]->Value = 0;
-	HeapMake(Heap);
+	#ifdef MIN_HEAP
+		HeapSiftUp(Heap, HeapIndex);
+	#else
+		HeapSiftDown(Heap, HeapIndex);
+	#endif
 }
 
 HEAP_DAT_T*
@@ -179,7 +191,7 @@ GetAndRemoveHeapTop(PHeap Heap)
 }
 
 #ifdef TEST
-#define HEAP_SIZE 40960
+#define HEAP_SIZE 409600
 #define fill()										\
 	i = 0;											\
 	while (TRUE == HeapInsert(&Heap, HeapData+i))	\
@@ -231,10 +243,12 @@ int main()
 		HeapDelete(&Heap, HeapData[i].HeapIndex);
 	for (i=HEAP_SIZE/2; i<HEAP_SIZE; i++)
 		HeapInsert(&Heap, HeapData+i);
+	modify();
 	verify();
 	empty();
 
 	fill();
+	modify();
 	sort();
 	for (i=1; i<Heap.Used; i++)
 	{
