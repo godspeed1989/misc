@@ -149,7 +149,7 @@ int main()
 	blocks = (PCACHE_BLOCK*)malloc(LIST_SIZE*sizeof(PCACHE_BLOCK));
 	assert(blocks);
 	for (i = 0; i < LIST_SIZE; i++) {
-		assert(blocks[i] = malloc(sizeof(CACHE_BLOCK)));
+		assert(blocks[i] = (PCACHE_BLOCK)malloc(sizeof(CACHE_BLOCK)));
 		blocks[i]->Value = i;
 	}
 
@@ -191,7 +191,7 @@ int main()
 
 	for (i = 0; i < LIST_SIZE; i++)
 		free(blocks[i]);
-	free(blocks[i]);
+	free(blocks);
 	return 0;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <time.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -18,22 +19,27 @@ typedef struct _CACHE_BLOCK
 
 #define QUEUE_DAT_T PCACHE_BLOCK
 
+/**
+ * generic implement fifo
+ */
+
 typedef struct _Queue
 {
 	ULONG				Size;
+	ULONG				Used;
 	ULONG				Head;
 	ULONG				Tail;
-	QUEUE_DAT_T			Data[];
+	QUEUE_DAT_T*		Data;
 }Queue, *PQueue;
 
-VOID InitQueue (PQueue Queue, ULONG Size);
+BOOLEAN InitQueue (PQueue Queue, ULONG Size);
 
 VOID DestroyQueue (PQueue Queue);
 
-QUEUE_DAT_T* QueueRemove (PQueue Queue);
+BOOLEAN QueueInsert (PQueue Queue, QUEUE_DAT_T Entry);
 
-BOOLEAN QueueInsert(PQueue Queue, QUEUE_DAT_T* Entry);
-
-ULONG QueueUsed (PQueue Queue);
+QUEUE_DAT_T QueueRemove (PQueue Queue);
 
 BOOLEAN QueueIsFull (PQueue Queue);
+
+BOOLEAN QueueIsEmpty (PQueue Queue);
