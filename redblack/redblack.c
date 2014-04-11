@@ -390,5 +390,4 @@ rb_tree_destroy(rb_tree_t *tree)
 {
     ASSERT(tree != NULL);
     rb_clear(tree);
-    RB_FREE(tree);
 }
