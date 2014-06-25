@@ -10,6 +10,27 @@
 //#define DNS_SERVER  "114.114.114.114"
 //#define DNS_SERVER  "42.120.21.30"
 #define DNS_SERVER  "8.8.8.8"
+struct DNS_HEADER
+{
+    unsigned short id;      //0 identification number
+
+    unsigned char rd :1;    //2 recursion desired
+    unsigned char tc :1;    //2 truncated message
+    unsigned char aa :1;    //2 authoritive answer
+    unsigned char opcode :4;//2 purpose of message
+    unsigned char qr :1;    //2 query/response flag
+
+    unsigned char rcode :4; //3 response code
+    unsigned char cd :1;    //3 checking disabled
+    unsigned char ad :1;    //3 authenticated data
+    unsigned char z :1;     //3 its z! reserved
+    unsigned char ra :1;    //3 recursion available
+
+    unsigned short q_count;     //4 number of question entries
+    unsigned short ans_count;   //6 number of answer entries
+    unsigned short auth_count;  //8 number of authority entries
+    unsigned short add_count;   //10 number of resource entries
+};
 
 static int is_little_endian()
 {
@@ -41,22 +62,22 @@ void decode_dns_response (unsigned char * buffer, const char * hostna, char * ip
 {
     int i, j;
     int h_len = strlen(hostna);
-    unsigned char * p = buffer + 6; //skip qncount
-    unsigned short qncount = decode2short(p);
+    unsigned char * p = buffer + 6; /* get ans_count */
+    unsigned short ans_count = decode2short(p);
     /* header(12) + (host length+1) + eof sign(1) + qtype(2) + qclass(2) */
     /* skip query answer field */
     p = buffer + 12 + (h_len + 1) + 1 + 4;
 
-    for(i = 0; i < qncount; i++)
+    for(i = 0; i < ans_count; i++)
     {
         char flag = p[0];
         if((flag & 0xc0) == 0xc0) {
             p += 2;
         }
         else {
-            p += 1+ h_len + 1;
+            p += 1 + h_len + 1;
         }
-        short query_type =  decode2short(p);
+        short query_type = decode2short(p);
 
         p += 8;
         int data_len = decode2short(p);
@@ -67,7 +88,7 @@ void decode_dns_response (unsigned char * buffer, const char * hostna, char * ip
             bzero(ip, NI_MAXHOST);
             for(j = 0; j < data_len; j ++)
             {
-                int v  = p[0];
+                int v = p[0];
                 v = v>0 ? v : 0x0ff&v;
                 char tmp[4];
                 sprintf(tmp, "%d", v);
@@ -77,10 +98,12 @@ void decode_dns_response (unsigned char * buffer, const char * hostna, char * ip
                 }
                 p++;
             }
+            printf("*%s\n", ip);
         }
         else
+        {
             p += data_len;
-        printf("*%s\n", ip);
+        }
     }
 }
 
@@ -95,16 +118,17 @@ char * build_request_data (const char * hostname,int * ret_size)
 
     bzero(pbuf, size);
 
-    unsigned char header[10] = {0x01,0x00,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00};
     unsigned short seq = rand();
     memcpy(pbuf, &seq, 2);
     pbuf += 2;
+    unsigned char header[10] = {0x01,0x00,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00};
     memcpy(pbuf, header, 10);
     pbuf += 10;
 
     char * pstr = strtok(hostname1, ".");
     while(pstr != NULL)
     {
+        /* write name in 3www6google3com format */
         unsigned char len = strlen(pstr);
         memcpy(pbuf, &len, 1);
         pbuf += 1;
@@ -114,10 +138,13 @@ char * build_request_data (const char * hostname,int * ret_size)
 
         pstr = strtok(NULL, ".");
     }
-
+    /* EOF */
     pbuf += 1;
 
-    unsigned char extra_data[4] = {0x00, 0x01, 0x00, 0x01};
+    unsigned char extra_data[4] = {
+        0x00, 0x01, /* qtype */
+        0x00, 0x01  /* qclass */
+    };
     memcpy(pbuf, extra_data, 4);
 
     *ret_size = size;
@@ -143,7 +170,7 @@ void dns_resolve(const char * hostname, char * out_ip)
         perror("sendto failed");
 
     len = recvfrom(s, recv_buf, sizeof(recv_buf),0, (struct sockaddr*)&dest,&addr_len);
-    decode_dns_response(recv_buf, hostname,out_ip);
+    decode_dns_response(recv_buf, hostname, out_ip);
 
     free(request_buffer);
 }
