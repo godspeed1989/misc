@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	double center_x = 0.0,center_y = 0.0;
 	double zoom = 1.0, scale;
 
-	f = fopen("out.ppm","w");
+	f = fopen("out.pbm","w");
 	if(f == NULL) {
 		printf("Can't open output file\n");
 		return 0;
@@ -46,13 +46,13 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Center (%f,%f), zoom %f\n",
-		center_x,center_y,zoom);
+		center_x, center_y, zoom);
 
 	/* Adjust scale for image size */
 	scale = 4.0 / zoom / HRES;
 
 	/* Output the image header */
-	fprintf(f, "P6\n%i %i\n255\n", HRES, VRES);
+	fprintf(f, "P3\n%i %i\n255\n", HRES, VRES);
 
 	for(y = -VRES/2; y < -VRES/2+VRES; y++)
 	{
@@ -66,12 +66,12 @@ int main(int argc, char *argv[])
 
 			/* 'Magic' to convert i to a colour */
 			i = i + 1;
-			putc(i, f); /* Red */
-			putc(i*8, f); /* Green */
-			putc(i*64, f); /* Blue */
+			fprintf(f, "%d ", i); /* Red */
+			fprintf(f, "%d ", i*8); /* Green */
+			fprintf(f, "%d ", i*64); /* Blue */
 		}
+        fprintf(f, "\n");
 	}
 	fclose(f);
 	return 0;
 }
-
