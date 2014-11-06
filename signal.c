@@ -52,7 +52,7 @@ main(int argc, char *argv[])
     if (sigpending(&pendingMask) == -1)
         perror("sigpending");
     printSigset(stdout, "pending: ", &pendingMask);
-        
+
     sigemptyset(&emptyMask);        /* Unblock all signals */
     if (sigprocmask(SIG_SETMASK, &emptyMask, NULL) == -1)
     perror("sigprocmask");
